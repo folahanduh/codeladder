@@ -1,5 +1,7 @@
 # Code Ladder
 
+**Live site: <https://folahanduh.github.io/codeladder/>**
+
 A self-paced coding school that runs on your own computer. It takes you from your first HTML tag to building full-stack websites, writing and securing smart contracts, and designing token economies.
 
 - **48 lessons** in four tracks (Foundations, Web Development, Cryptography & Blockchain, Tokenomics), each at Beginner, Intermediate and Advanced level, starting from coding basics (integers, decimals, characters, strings, decisions, loops and functions)
