@@ -25,6 +25,32 @@ if (!order) return notFound();
 
 Hiding a button in the UI is not security. Attackers call your API directly.
 
+:::exercise Scope the query to the user
+@@file orders.ts
+@@prompt
+Fix broken access control. Write the safe version that only finds the order if it belongs to the logged-in user, and returns `notFound()` otherwise:
+
+1. `const order = await db.order.findFirst({`
+2. `where: { id: params.id, customerId: session.user.id },`
+3. `});`
+4. `if (!order) return notFound();`
+@@solution
+const order = await db.order.findFirst({
+  where: { id: params.id, customerId: session.user.id },
+});
+if (!order) return notFound();
+@@hint const\s+order\s*=\s*await\s+db\.order\.findFirst\(\s*\{
+Line 1: `const order = await db.order.findFirst({`
+@@hint where\s*:\s*\{\s*id\s*:\s*params\.id\s*,\s*customerId\s*:\s*session\.user\.id\s*\}
+Line 2 filters by both ids: `where: { id: params.id, customerId: session.user.id },`
+@@hint ^\s*\}\s*\)\s*;?\s*$
+Line 3 closes the object and the call: `});`
+@@hint if\s*\(\s*!\s*order\s*\)\s*return\s+notFound\(\s*\)
+Line 4: `if (!order) return notFound();`
+@@explain
+Someone changing the id in the URL now gets a 404 instead of a stranger's order. Returning "not found" rather than "forbidden" also avoids confirming the order exists.
+:::
+
 ## 2. Injection
 
 Untrusted input interpreted as code: SQL injection, command injection. Use parameterised queries or an ORM, never string-build commands, and validate input with a schema (Zod) at every entry point.
@@ -60,6 +86,22 @@ Set-Cookie: session=abc123; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=6048
 - `HttpOnly`: JavaScript cannot read it, so XSS cannot steal it.
 - `Secure`: only sent over HTTPS.
 - `SameSite`: limits cross-site sending (CSRF defence).
+
+:::exercise A secure session cookie
+@@file Response header
+@@lang text
+@@run false
+@@prompt
+Write the response header that sets a `session` cookie with value `abc123`, plus these flags in this order: `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`. Separate parts with a semicolon and a space.
+@@solution
+Set-Cookie: session=abc123; HttpOnly; Secure; SameSite=Lax; Path=/
+@@hint ^\s*Set-Cookie\s*:\s*session=abc123
+Start: `Set-Cookie: session=abc123`
+@@hint ;\s*HttpOnly\s*;\s*Secure
+then `; HttpOnly; Secure`
+@@hint ;\s*SameSite=Lax\s*;\s*Path=/\s*$
+then `; SameSite=Lax; Path=/`
+:::
 
 ## Secrets and dependencies
 

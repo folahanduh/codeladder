@@ -33,6 +33,38 @@ FDV (fully diluted valuation) = price x max supply
 
 That gap is the supply still to come. If the other 900 million tokens unlock over four years, demand must grow roughly tenfold just to keep the price at $0.50. This **low float, high FDV** pattern has burned many buyers.
 
+:::exercise Market cap and FDV
+@@file valuation.js
+@@prompt
+Five lines:
+
+1. `const price = 0.5;`
+2. `const circulating = 100_000_000;`
+3. `const maxSupply = 1_000_000_000;`
+4. Print the market cap: `price * circulating`
+5. Print the FDV: `price * maxSupply`
+
+(Underscores in numbers are allowed and just make them readable.)
+@@solution
+const price = 0.5;
+const circulating = 100_000_000;
+const maxSupply = 1_000_000_000;
+console.log(price * circulating);
+console.log(price * maxSupply);
+@@hint const\s+price\s*=\s*0\.5
+Line 1: `const price = 0.5;`
+@@hint const\s+circulating\s*=\s*100_000_000
+Line 2: `const circulating = 100_000_000;`
+@@hint const\s+maxSupply\s*=\s*1_000_000_000
+Line 3: `const maxSupply = 1_000_000_000;`
+@@hint console\.log\(\s*price\s*\*\s*circulating\s*\)
+Line 4: `console.log(price * circulating);`
+@@hint console\.log\(\s*price\s*\*\s*maxSupply\s*\)
+Line 5: `console.log(price * maxSupply);`
+@@explain
+Output: `50000000` (a $50M market cap) and `500000000` (a $500M FDV). Nine-tenths of the valuation is supply that does not exist on the market yet.
+:::
+
 ## Price is not value
 
 A token at $0.0001 is not "cheap" and a token at $3,000 is not "expensive". Price on its own means nothing without supply.
@@ -61,6 +93,22 @@ Token A "only" needs to reach $1 to make you rich? That would be a market cap of
 
 :::try Try it
 Open the [Tokenomics Simulator](#token-sim) and load the **Low float, high FDV** preset. Look at the FDV to market cap ratio, then the circulating supply curve. That gap is what this lesson is about.
+:::
+
+:::exercise The FDV gap
+@@file ratio.js
+@@prompt
+Three lines: `const marketCap = 50_000_000;`, `const fdv = 500_000_000;`, then print `fdv / marketCap`.
+@@solution
+const marketCap = 50_000_000;
+const fdv = 500_000_000;
+console.log(fdv / marketCap);
+@@hint const\s+marketCap\s*=\s*50_000_000
+Line 1: `const marketCap = 50_000_000;` (capital C).
+@@hint const\s+fdv\s*=\s*500_000_000
+Line 2: `const fdv = 500_000_000;`
+@@hint console\.log\(\s*fdv\s*\/\s*marketCap\s*\)
+Line 3: `console.log(fdv / marketCap);`
 :::
 
 ## Quiz

@@ -43,6 +43,32 @@ console.log(await verifyMessage({ address: account.address, message: message + '
 
 Change one character of the message and verification fails. That is integrity plus authenticity in one step.
 
+:::exercise Sign and verify a message
+@@file sign.ts
+@@prompt
+With viem's functions already imported, write four lines:
+
+1. `const account = privateKeyToAccount(generatePrivateKey());`
+2. `const signature = await account.signMessage({ message: 'I agree' });`
+3. `const valid = await verifyMessage({ address: account.address, message: 'I agree', signature });`
+4. `console.log(valid);`
+@@solution
+const account = privateKeyToAccount(generatePrivateKey());
+const signature = await account.signMessage({ message: 'I agree' });
+const valid = await verifyMessage({ address: account.address, message: 'I agree', signature });
+console.log(valid);
+@@hint privateKeyToAccount\(\s*generatePrivateKey\(\s*\)\s*\)
+Line 1: `const account = privateKeyToAccount(generatePrivateKey());`
+@@hint account\.signMessage\(\s*\{\s*message\s*:\s*['"]I agree['"]\s*\}\s*\)
+Line 2: `await account.signMessage({ message: 'I agree' })`
+@@hint verifyMessage\(\s*\{\s*address\s*:\s*account\.address\s*,\s*message\s*:\s*['"]I agree['"]\s*,\s*signature\s*\}\s*\)
+Line 3: `verifyMessage({ address: account.address, message: 'I agree', signature })`
+@@hint console\.log\(\s*valid\s*\)
+Line 4: `console.log(valid);`
+@@explain
+This needs viem installed (`npm install viem`), so there is no Run button here. It prints `true`. Change the message in line 3 and it prints `false`: the signature only matches the exact message it signed.
+:::
+
 ## Seed phrases
 
 Managing raw private keys is error-prone, so wallets use a **seed phrase** (also called a recovery phrase or mnemonic): 12 or 24 words from a standard list of 2,048 (BIP-39). From that one phrase, a wallet deterministically derives a tree of private keys (BIP-32 / BIP-44). The first Ethereum account uses the path `m/44'/60'/0'/0/0`.

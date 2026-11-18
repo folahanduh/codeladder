@@ -61,6 +61,48 @@ DELETE FROM carts WHERE updated_at < now() - interval '30 days';
 
 Learn SQL properly. ORMs help, but every senior developer can read and write SQL, and debugging slow pages usually means reading it.
 
+:::exercise Your first SQL query
+@@file query.sql
+@@prompt
+Write one query (keywords in capitals): select `name` and `email` from `customers` where `created_at` is after `'2026-01-01'`, ordered by `name`, limited to `20` rows. End with a semicolon.
+@@solution
+SELECT name, email FROM customers WHERE created_at > '2026-01-01' ORDER BY name LIMIT 20;
+@@hint ^\s*SELECT\s+name\s*,\s*email
+Start with `SELECT name, email`
+@@hint FROM\s+customers
+then `FROM customers`
+@@hint WHERE\s+created_at\s*>\s*['"]2026-01-01['"]
+then `WHERE created_at > '2026-01-01'`
+@@hint ORDER\s+BY\s+name\s+LIMIT\s+20\s*;
+then `ORDER BY name LIMIT 20;`
+:::
+
+:::exercise Join two tables
+@@file query.sql
+@@prompt
+List paid orders with their customer's email. Four lines:
+
+1. `SELECT o.id, o.total_pence, c.email`
+2. `FROM orders o`
+3. `JOIN customers c ON c.id = o.customer_id`
+4. `WHERE o.status = 'paid';`
+@@solution
+SELECT o.id, o.total_pence, c.email
+FROM orders o
+JOIN customers c ON c.id = o.customer_id
+WHERE o.status = 'paid';
+@@hint ^\s*SELECT\s+o\.id\s*,\s*o\.total_pence\s*,\s*c\.email\s*$
+Line 1: `SELECT o.id, o.total_pence, c.email`
+@@hint ^\s*FROM\s+orders\s+o\s*$
+Line 2: `FROM orders o` (`o` is a short nickname for the table).
+@@hint ^\s*JOIN\s+customers\s+c\s+ON\s+c\.id\s*=\s*o\.customer_id\s*$
+Line 3: `JOIN customers c ON c.id = o.customer_id`
+@@hint WHERE\s+o\.status\s*=\s*['"]paid['"]\s*;
+Line 4: `WHERE o.status = 'paid';`
+@@explain
+`JOIN ... ON` matches each order to the customer whose `id` equals the order's `customer_id`. That foreign-key link is what makes relational databases powerful.
+:::
+
 ## Using an ORM
 
 An ORM lets you query with typed code. With **Prisma**, you describe the schema:
@@ -114,6 +156,20 @@ Return correct status codes (201 created, 400 invalid input, 401 not logged in, 
 
 :::warn Never build SQL by gluing strings
 `"SELECT * FROM users WHERE email = '" + email + "'"` lets an attacker type SQL into your form and read or delete your data. That is **SQL injection**. ORMs and parameterised queries (`WHERE email = $1`) prevent it. Never interpolate user input into a query string.
+:::
+
+:::exercise Insert a row
+@@file query.sql
+@@prompt
+Insert a customer with email `'ada@example.com'` and name `'Ada'` into `customers`, naming the columns `(email, name)`.
+@@solution
+INSERT INTO customers (email, name) VALUES ('ada@example.com', 'Ada');
+@@hint ^\s*INSERT\s+INTO\s+customers
+Start with `INSERT INTO customers`
+@@hint \(\s*email\s*,\s*name\s*\)\s*VALUES
+then the columns and the keyword: `(email, name) VALUES`
+@@hint VALUES\s*\(\s*['"]ada@example\.com['"]\s*,\s*['"]Ada['"]\s*\)\s*;
+then the values in the same order: `('ada@example.com', 'Ada');`
 :::
 
 ## Other back-end essentials

@@ -58,6 +58,55 @@ In Solidity:
 bytes32 h = keccak256(abi.encodePacked("hello"));
 ```
 
+:::exercise Hash text with SHA-256
+@@file hash.js
+@@prompt
+Four lines:
+
+1. `const bytes = new TextEncoder().encode('hello');`
+2. `const digest = await crypto.subtle.digest('SHA-256', bytes);`
+3. `const hex = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');`
+4. `console.log(hex);`
+
+The output should start with `2cf24dba`.
+@@solution
+const bytes = new TextEncoder().encode('hello');
+const digest = await crypto.subtle.digest('SHA-256', bytes);
+const hex = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+console.log(hex);
+@@also
+const bytes = new TextEncoder().encode('hello');
+const digest = await crypto.subtle.digest('SHA-256', bytes);
+const hex = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+console.log(hex);
+@@hint new\s+TextEncoder\(\s*\)\.encode\(\s*['"]hello['"]\s*\)
+Line 1: `const bytes = new TextEncoder().encode('hello');`
+@@hint await\s+crypto\.subtle\.digest\(\s*['"]SHA-256['"]\s*,\s*bytes\s*\)
+Line 2: `const digest = await crypto.subtle.digest('SHA-256', bytes);`
+@@hint Array\.from\(\s*new\s+Uint8Array\(\s*digest\s*\)\s*,
+Line 3 starts `const hex = Array.from(new Uint8Array(digest),`
+@@hint b\.toString\(\s*16\s*\)\.padStart\(\s*2\s*,\s*['"]0['"]\s*\)
+Each byte becomes two hex characters: `b.toString(16).padStart(2, '0')`
+@@hint \)\.join\(\s*['"]['"]\s*\)
+Join them with an empty string: `.join('')`
+@@explain
+`padStart(2, '0')` matters: the byte 10 is `a` in hex, but it must be written `0a`. Without padding, some hashes would come out shorter than 64 characters and would never match.
+:::
+
+:::exercise Hash in Solidity
+@@file Hash.sol
+@@prompt
+Write one Solidity line: a `bytes32` called `h` equal to `keccak256(abi.encodePacked("hello"))`.
+@@solution
+bytes32 h = keccak256(abi.encodePacked("hello"));
+@@hint ^\s*bytes32\s+h\s*=
+Start with the type and name: `bytes32 h =`
+@@hint keccak256\(\s*abi\.encodePacked\(\s*["']hello["']\s*\)\s*\)
+`keccak256(abi.encodePacked("hello"))`
+@@hint \)\s*;\s*$
+Solidity needs a semicolon at the end.
+:::
+
 ## Hashes are not encryption
 
 There is no key and no way back. That makes hashes perfect for checking, not for hiding data you need to read again.

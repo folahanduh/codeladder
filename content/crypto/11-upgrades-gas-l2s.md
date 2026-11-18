@@ -53,6 +53,41 @@ uint64 duration;
 
 Then measure with `forge test --gas-report` and `forge snapshot`. Never sacrifice readability or safety for tiny savings; a gas optimisation that introduces a bug is the most expensive kind.
 
+:::exercise Values that cost no storage
+@@file Token.sol
+@@prompt
+Two declarations that live in bytecode, not storage: a `public constant` `uint256` called `MAX_SUPPLY` equal to `1_000_000_000 ether`, and a `public immutable` `address` called `owner`.
+@@solution
+uint256 public constant MAX_SUPPLY = 1_000_000_000 ether;
+address public immutable owner;
+@@hint uint256\s+public\s+constant\s+MAX_SUPPLY\s*=\s*1_000_000_000\s+ether\s*;
+Line 1: `uint256 public constant MAX_SUPPLY = 1_000_000_000 ether;`
+@@hint address\s+public\s+immutable\s+owner\s*;
+Line 2: `address public immutable owner;` (set once, in the constructor).
+:::
+
+:::exercise Pack a struct into one slot
+@@file Vesting.sol
+@@prompt
+Write a struct `Grant` with three fields that pack into a single 32-byte storage slot: `uint128 amount`, `uint64 start`, `uint64 duration` (128 + 64 + 64 = 256 bits).
+@@solution
+struct Grant {
+    uint128 amount;
+    uint64 start;
+    uint64 duration;
+}
+@@hint ^\s*struct\s+Grant\s*\{
+Line 1: `struct Grant {`
+@@hint uint128\s+amount\s*;
+`uint128 amount;`
+@@hint uint64\s+start\s*;
+`uint64 start;`
+@@hint uint64\s+duration\s*;
+`uint64 duration;`
+@@explain
+Three `uint256` fields would use three slots: about 60,000 gas to write fresh. Packed, it is one slot. `uint128` still holds amounts up to about 3.4 x 10^38, plenty for 18-decimal tokens.
+:::
+
 ## Layer 2 rollups
 
 Rollups run transactions off Ethereum mainnet, then post the data (and proofs) back to it, inheriting much of its security at a fraction of the cost.

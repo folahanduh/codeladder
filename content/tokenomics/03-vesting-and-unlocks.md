@@ -47,6 +47,28 @@ console.log('lump style at month 12:', (unlockedFraction(12, teamLump) * 100).to
 
 Add every allocation together, multiply by max supply, and you have the circulating supply curve.
 
+:::exercise Write a vesting function
+@@file vesting.js
+@@prompt
+Write `unlocked(month, cliff, vest)`: return `0` before the cliff, otherwise `Math.min(1, (month - cliff) / vest)`. Then print `unlocked(24, 12, 24)`.
+@@solution
+function unlocked(month, cliff, vest) {
+  if (month < cliff) return 0;
+  return Math.min(1, (month - cliff) / vest);
+}
+console.log(unlocked(24, 12, 24));
+@@hint function\s+unlocked\s*\(\s*month\s*,\s*cliff\s*,\s*vest\s*\)\s*\{
+Line 1: `function unlocked(month, cliff, vest) {`
+@@hint if\s*\(\s*month\s*<\s*cliff\s*\)\s*return\s+0
+Line 2: `if (month < cliff) return 0;`
+@@hint return\s+Math\.min\(\s*1\s*,\s*\(\s*month\s*-\s*cliff\s*\)\s*\/\s*vest\s*\)
+Line 3: `return Math.min(1, (month - cliff) / vest);`
+@@hint unlocked\(\s*24\s*,\s*12\s*,\s*24\s*\)
+After the function: `console.log(unlocked(24, 12, 24));`
+@@explain
+Output: `0.5`. Twelve months after a 12-month cliff, half of a 24-month vest has unlocked. `Math.min(1, ...)` caps it at 100% after the vest ends.
+:::
+
 ## Why vesting matters to price
 
 Every unlock gives someone tokens they may sell. Investors who bought at $0.02 are very happy to sell at $0.30. What matters is not only how much unlocks, but:
@@ -72,6 +94,26 @@ Promises in a PDF are not vesting. Trustworthy projects lock allocations in **ve
 
 :::tip Design guidelines that build trust
 Team and investors: a 12-month cliff and 2 to 4 years of vesting. Avoid one-day walls by vesting monthly (or per block) after the cliff. Publish the schedule and contract addresses. Avoid tiny launch floats that let insiders print a huge paper valuation.
+:::
+
+:::exercise How big is that unlock, really?
+@@file unlock.js
+@@prompt
+Circulating supply is 10% and 3% unlocks next week. Three lines: `const circulating = 10;`, `const unlock = 3;`, then print `(unlock / circulating) * 100`.
+@@solution
+const circulating = 10;
+const unlock = 3;
+console.log((unlock / circulating) * 100);
+@@also
+const circulating = 10;
+const unlock = 3;
+console.log(unlock / circulating * 100);
+@@hint const\s+circulating\s*=\s*10
+Line 1: `const circulating = 10;`
+@@hint const\s+unlock\s*=\s*3
+Line 2: `const unlock = 3;`
+@@hint unlock\s*\/\s*circulating\s*\)?\s*\*\s*100
+Line 3: `console.log((unlock / circulating) * 100);`
 :::
 
 ## Quiz

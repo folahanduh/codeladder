@@ -38,6 +38,37 @@ stock = stock - 1;              // now 11
 
 Names are written in **camelCase**: `cartTotal`, `isLoggedIn`, `maxSupply`. Make them descriptive.
 
+:::exercise const and let
+@@file stock.js
+@@prompt
+Write four lines:
+
+1. A constant `brand` holding `'Amara Studio'`.
+2. A variable (`let`) `stock` holding `12`.
+3. Reduce stock by one: `stock = stock - 1;`
+4. Print both: `console.log(brand, stock);`
+@@solution
+const brand = 'Amara Studio';
+let stock = 12;
+stock = stock - 1;
+console.log(brand, stock);
+@@also
+const brand = 'Amara Studio';
+let stock = 12;
+stock -= 1;
+console.log(brand, stock);
+@@hint const\s+brand\s*=\s*['"]Amara Studio['"]
+Line 1: `const brand = 'Amara Studio';`
+@@hint let\s+stock\s*=\s*12
+Line 2 uses `let`, because the value will change: `let stock = 12;`
+@@hint stock\s*(=\s*stock\s*-|-=)\s*1
+Line 3: `stock = stock - 1;`
+@@hint console\.log\(\s*brand\s*,\s*stock\s*\)
+Line 4: `console.log(brand, stock);`
+@@explain
+Output: `Amara Studio 11`. Try changing `let` to `const` and run it: you get `TypeError: Assignment to constant variable`. That error is `const` protecting you.
+:::
+
 ## Operators
 
 ```js
@@ -66,6 +97,28 @@ isMember || hasCode    // OR: at least one true
 
 :::warn Always use === not ==
 `==` converts types before comparing, giving surprises like `'0' == false` being `true`. Use `===` and `!==` every time.
+:::
+
+:::exercise Format a price with a template literal
+@@file price.js
+@@prompt
+Write two lines:
+
+1. A constant `pence` equal to `6800`.
+2. Print the text `Total: £68.00` using a **template literal** (text between backticks) with `${(pence / 100).toFixed(2)}` inside it.
+@@solution
+const pence = 6800;
+console.log(`Total: £${(pence / 100).toFixed(2)}`);
+@@hint const\s+pence\s*=\s*6800
+Line 1: `const pence = 6800;`
+@@hint console\.log\(\s*`
+Line 2 starts `console.log(` and then a backtick (the key above Tab on most keyboards), not a quote.
+@@hint `Total: £\$\{
+Inside the backticks: `Total: £` then a dollar sign and an opening curly brace.
+@@hint \(\s*pence\s*\/\s*100\s*\)\.toFixed\(\s*2\s*\)
+Inside the braces: `(pence / 100).toFixed(2)` then close the brace and the backtick.
+@@explain
+Inside backticks, anything in `${ }` is calculated and dropped into the text. Output: `Total: £68.00`. Money stays in pence until the moment you display it.
 :::
 
 ## Making decisions
@@ -110,6 +163,40 @@ Good functions do **one thing** and are named with a verb: `calculateTotal`, `fo
 
 :::tip Money is stored in pence
 `0.1 + 0.2` in JavaScript is `0.30000000000000004`, because computers store decimals in binary. Store money as whole pence (or cents) and only divide by 100 when displaying it. Blockchains do the same thing with 18 decimal places, as you will see later.
+:::
+
+:::exercise A function and an arrow function
+@@file vat.js
+@@prompt
+Write:
+
+1. A function `priceWithVat(pence)` that returns `Math.round(pence * 1.2)`.
+2. An arrow function constant `formatGBP` that takes `pence` and returns `(pence / 100).toFixed(2)`.
+3. `console.log(formatGBP(priceWithVat(5667)));`
+@@solution
+function priceWithVat(pence) {
+  return Math.round(pence * 1.2);
+}
+const formatGBP = (pence) => (pence / 100).toFixed(2);
+console.log(formatGBP(priceWithVat(5667)));
+@@also
+function priceWithVat(pence) {
+  return Math.round(pence * 1.2);
+}
+const formatGBP = pence => (pence / 100).toFixed(2);
+console.log(formatGBP(priceWithVat(5667)));
+@@hint function\s+priceWithVat\s*\(\s*pence\s*\)\s*\{
+Line 1: `function priceWithVat(pence) {`
+@@hint return\s+Math\.round\(\s*pence\s*\*\s*1\.2\s*\)
+Line 2: `return Math.round(pence * 1.2);`
+@@hint const\s+formatGBP\s*=\s*\(?\s*pence\s*\)?\s*=>
+Line 4: `const formatGBP = (pence) =>` then the expression to return.
+@@hint =>\s*\(\s*pence\s*\/\s*100\s*\)\.toFixed\(\s*2\s*\)
+After the arrow: `(pence / 100).toFixed(2);`
+@@hint formatGBP\(\s*priceWithVat\(\s*5667\s*\)\s*\)
+Last line calls one function inside the other: `formatGBP(priceWithVat(5667))`
+@@explain
+5667 x 1.2 = 6800.4, rounded to 6800 pence, formatted as `68.00`. Functions inside functions run from the inside out.
 :::
 
 ## Quiz

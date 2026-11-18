@@ -79,6 +79,66 @@ function parseList(lines, start, ordered) {
   return { html, next: i };
 }
 
+// ---------- coding exercises ----------
+// Inside a :::exercise block, sections start with @@name:
+//   @@file name.js        file name shown in the editor tab (its extension sets the language)
+//   @@lang bash           language, if the file name has no extension (e.g. "Terminal")
+//   @@run false           turn off the Run button (on by default for js, html and css)
+//   @@prompt              Markdown: the task
+//   @@starter             code already in the editor (usually comments)
+//   @@html                HTML page the code runs against (for DOM or CSS exercises)
+//   @@solution            the expected answer (also used as the ghost text)
+//   @@also                another accepted answer (repeatable)
+//   @@hint <regex>        if the learner's code does NOT match <regex>, this tip is shown (repeatable, in order)
+//   @@explain             Markdown shown once the exercise is solved
+let exercises = [];
+const EXT_LANG = { js: 'js', mjs: 'js', ts: 'ts', tsx: 'ts', html: 'html', css: 'css', sh: 'bash', py: 'python', sol: 'solidity', sql: 'sql', json: 'json' };
+
+function parseExercise(title, lines) {
+  const ex = { title: inline(title || 'Your turn'), file: 'main.js', lang: '', run: null, prompt: '', starter: '', html: '', solution: '', also: [], hints: [], explain: '' };
+  let section = null;
+  let hintRe = '';
+  let buf = [];
+  const clean = (t) => t.replace(/^(\s*\n)+/, '').replace(/\s+$/, '');
+  const flush = () => {
+    const text = clean(buf.join('\n'));
+    if (section === 'prompt') ex.prompt = markdown(text);
+    else if (section === 'explain') ex.explain = markdown(text);
+    else if (section === 'starter') ex.starter = text;
+    else if (section === 'html') ex.html = text;
+    else if (section === 'solution') ex.solution = text;
+    else if (section === 'also') ex.also.push(text);
+    else if (section === 'hint') ex.hints.push({ re: hintRe, text: inline(text.replace(/\s*\n\s*/g, ' ')) });
+    buf = [];
+  };
+  for (const line of lines) {
+    const m = line.match(/^@@(\w+)\s?(.*)$/);
+    if (!m) { buf.push(line); continue; }
+    flush();
+    const [, key, arg] = m;
+    section = null;
+    if (key === 'file') ex.file = arg.trim();
+    else if (key === 'lang') ex.lang = arg.trim();
+    else if (key === 'run') ex.run = arg.trim() !== 'false';
+    else if (key === 'hint') { section = 'hint'; hintRe = arg.trim(); }
+    else if (['prompt', 'starter', 'html', 'solution', 'also', 'explain'].includes(key)) section = key;
+    else throw new Error(`Unknown exercise section @@${key} in "${title}"`);
+  }
+  flush();
+  if (!ex.lang) ex.lang = EXT_LANG[(ex.file.split('.').pop() || '').toLowerCase()] || 'text';
+  if (ex.run === null) ex.run = ['js', 'html', 'css'].includes(ex.lang);
+  if (!ex.solution) throw new Error(`Exercise "${title}" has no @@solution`);
+  // every accepted answer must satisfy every hint, or the hints would mislead learners
+  for (const h of ex.hints) {
+    let re;
+    try { re = new RegExp(h.re, 'm'); } catch (e) { throw new Error(`Exercise "${title}": bad hint regex /${h.re}/: ${e.message}`); }
+    for (const answer of [ex.solution, ...ex.also]) {
+      if (!re.test(answer)) throw new Error(`Exercise "${title}": an accepted answer fails hint /${h.re}/`);
+    }
+  }
+  return ex;
+}
+
 // ---------- block-level Markdown ----------
 const BLOCK_START = /^(```|:::|#{2,4}\s|>|\s*[-*]\s|\s*\d+\.\s|\||---+\s*$)/;
 
@@ -103,6 +163,19 @@ function markdown(src) {
         `<div class="code" data-lang="${lang}"${flags.includes('try') ? ' data-try="1"' : ''}>` +
           `<pre><code class="language-${lang}">${esc(buf.join('\n'))}</code></pre></div>`
       );
+      continue;
+    }
+
+    // coding exercises:  :::exercise Title  @@file ... @@prompt ... @@solution ... @@hint <regex> ...  :::
+    m = line.match(/^:::exercise\s*(.*)$/);
+    if (m) {
+      const buf = [];
+      i++;
+      while (i < lines.length && lines[i].trim() !== ':::') buf.push(lines[i++]);
+      i++;
+      const ex = parseExercise(m[1], buf);
+      exercises.push(ex);
+      out.push(`<div class="exercise" data-ex="${exercises.length - 1}"></div>`);
       continue;
     }
 
@@ -135,7 +208,8 @@ function markdown(src) {
     if (line.trim().startsWith('|')) {
       const rows = [];
       while (i < lines.length && lines[i].trim().startsWith('|')) rows.push(lines[i++]);
-      const cells = (r) => r.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+      // split on | but not on \| (an escaped pipe inside a cell)
+      const cells = (r) => r.trim().replace(/^\||\|$/g, '').split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g, '|'));
       const head = cells(rows[0]);
       const body = rows.slice(2).map(cells);
       out.push(
@@ -204,6 +278,7 @@ function parseLesson(text, file) {
   }
   if (!LEVELS.includes(meta.level)) throw new Error(`${file}: level must be one of ${LEVELS.join(', ')}`);
   let body = text.slice(fm[0].length);
+  exercises = [];
   let quiz = [];
   const qi = body.search(/^## Quiz\s*$/m);
   if (qi >= 0) {
@@ -220,6 +295,7 @@ function parseLesson(text, file) {
     summary: meta.summary,
     html,
     quiz,
+    exercises,
     text: plain.slice(0, 4000),
   };
 }
@@ -246,7 +322,10 @@ async function build() {
   const banner = '// AUTO-GENERATED by scripts/build.mjs from /content. Edit the Markdown, then run: npm run build\n';
   await writeFile(OUT_FILE, `${banner}window.CL_LESSONS = ${JSON.stringify(lessons)};\n`);
   const quizCount = lessons.reduce((n, l) => n + l.quiz.length, 0);
-  console.log(`Built ${lessons.length} lessons and ${quizCount} quiz questions -> assets/content.js`);
+  const exCount = lessons.reduce((n, l) => n + l.exercises.length, 0);
+  const noEx = lessons.filter((l) => !l.exercises.length).map((l) => l.id);
+  console.log(`Built ${lessons.length} lessons, ${quizCount} quiz questions and ${exCount} coding exercises -> assets/content.js`);
+  if (noEx.length) console.log(`Lessons without exercises: ${noEx.join(', ')}`);
 }
 
 build().catch((err) => {

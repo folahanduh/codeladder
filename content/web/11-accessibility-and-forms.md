@@ -37,6 +37,26 @@ button:focus { outline: none; }
 }
 ```
 
+:::exercise A visible focus ring
+@@file styles.css
+@@html
+<p style="font-family:system-ui">Click in the preview, then press Tab to move focus:</p>
+<a href="#">A link</a> <button>A button</button>
+@@prompt
+Write a `:focus-visible` rule with `outline: 3px solid #2747e0;` and `outline-offset: 2px;`. Run it, click inside the preview and press Tab to see your focus ring.
+@@solution
+:focus-visible {
+  outline: 3px solid #2747e0;
+  outline-offset: 2px;
+}
+@@hint ^\s*:focus-visible\s*\{
+Line 1: `:focus-visible {` (starts with a colon).
+@@hint outline\s*:\s*3px\s+solid\s+#2747e0
+`outline: 3px solid #2747e0;`
+@@hint outline-offset\s*:\s*2px
+`outline-offset: 2px;`
+:::
+
 ## A form done properly
 
 ```html try
@@ -94,6 +114,24 @@ Useful ones:
 
 :::tip Test it yourself in five minutes
 Unplug your mouse and use your site with [[Tab]], [[Shift+Tab]], [[Enter]] and [[Space]]. Then run Lighthouse's Accessibility audit in Chrome DevTools. Then try your phone's screen reader (VoiceOver on iPhone, TalkBack on Android) on one page.
+:::
+
+:::exercise Name icon buttons for screen readers
+@@file menu.html
+@@prompt
+Two buttons:
+
+1. A close button whose visible text is just `x`, with `aria-label="Close menu"`.
+2. A menu toggle with `aria-expanded="false"` and `aria-controls="menu"`, and the text `Menu`.
+@@solution
+<button aria-label="Close menu">x</button>
+<button aria-expanded="false" aria-controls="menu">Menu</button>
+@@hint <button\s+aria-label=["']Close menu["']\s*>\s*x\s*</button>
+Line 1: `<button aria-label="Close menu">x</button>`
+@@hint aria-expanded=["']false["']
+Line 2 needs `aria-expanded="false"`
+@@hint aria-controls=["']menu["']\s*>\s*Menu\s*</button>
+then `aria-controls="menu">Menu</button>`
 :::
 
 ## Quiz

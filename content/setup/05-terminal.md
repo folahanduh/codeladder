@@ -54,6 +54,24 @@ code .
 
 `echo "..." > file` writes text into a file. `code .` opens the current folder in VS Code (see the Install guide if that command is missing).
 
+:::exercise Make a project folder
+@@file Terminal
+@@lang bash
+@@prompt
+Type the two commands that create a folder called `my-site` and then move into it. This editor checks your commands; run them for real in your own terminal afterwards.
+@@solution
+mkdir my-site
+cd my-site
+@@hint ^\s*mkdir\s
+Line 1 uses `mkdir` ("make directory").
+@@hint mkdir\s+my-site
+Name the folder `my-site`, with a hyphen and no spaces.
+@@hint ^\s*cd\s+my-site\s*$
+Line 2 moves into it with `cd` ("change directory"): `cd my-site`
+@@explain
+`mkdir my-site` creates the folder. `cd my-site` moves you inside it, so every command after that runs in `my-site`. Use `pwd` to check where you are.
+:::
+
 ## Commands, flags and arguments
 
 ```bash
@@ -72,6 +90,31 @@ Files deleted with `rm` are gone. `rm -rf folder` deletes a folder and everythin
 
 :::tip Speed habits from day one
 Press [[Tab]] to autocomplete names. Press [[Up]] to reuse the last command. Press [[Ctrl+R]] to search your history. Press [[Ctrl+C]] to stop a running program.
+:::
+
+:::exercise Write and read a file
+@@file Terminal
+@@lang bash
+@@prompt
+Three commands:
+
+1. Create a file called `notes.txt` containing the word `Hello` (use `echo "Hello"` and the `>` symbol).
+2. List all files, including hidden ones, in long format.
+3. Print the contents of `notes.txt`.
+@@solution
+echo "Hello" > notes.txt
+ls -la
+cat notes.txt
+@@hint ^\s*echo\s+["']Hello["']
+Line 1 starts with `echo "Hello"`.
+@@hint >\s*notes\.txt
+Send the output into the file with `>`: `echo "Hello" > notes.txt`
+@@hint ^\s*ls\s+-la\s*$
+Line 2: `ls -la` (list, long format, all files).
+@@hint ^\s*cat\s+notes\.txt\s*$
+Line 3: `cat notes.txt` prints a file's contents.
+@@explain
+`echo` prints text, and `>` redirects that text into a file instead of the screen (replacing anything already in it; `>>` would add to the end). `ls -la` shows the new file, and `cat` reads it back.
 :::
 
 ## Quiz

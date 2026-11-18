@@ -71,6 +71,23 @@ Every page starts the same way. In VS Code, type `!` and press [[Tab]] to genera
 - `<head>` holds information **about** the page: title (shown in the tab and Google results), character set, the viewport setting that makes it work on phones.
 - `<body>` holds everything you see.
 
+:::exercise A heading and a paragraph
+@@file index.html
+@@prompt
+Write two elements: a main heading (`h1`) that says `Amara Studio`, and under it a paragraph (`p`) that says `Handmade brass jewellery.` Press **Run it** to see them rendered.
+@@solution
+<h1>Amara Studio</h1>
+<p>Handmade brass jewellery.</p>
+@@hint <h1>
+Open the heading with `<h1>`.
+@@hint <h1>\s*Amara Studio\s*</h1>
+Close it with `</h1>` (note the slash): `<h1>Amara Studio</h1>`
+@@hint <p>\s*Handmade brass jewellery\.\s*</p>
+Line 2: `<p>Handmade brass jewellery.</p>` including the full stop.
+@@explain
+Every element opens with `<name>` and closes with `</name>`. The browser shows `h1` large and bold because it is the most important heading, not because of how you typed it.
+:::
+
 ## Semantic HTML: use the right element
 
 Professionals pick elements by **meaning**, not appearance. Screen readers, search engines and your future self all depend on it.
@@ -100,6 +117,26 @@ A page made of nothing but `<div>` elements works visually but is meaningless to
 - `width` and `height` stop the page jumping as images load.
 - `loading="lazy"` delays off-screen images, making pages faster.
 
+:::exercise An image with good alt text
+@@file index.html
+@@prompt
+Add an image of the file `hoops.jpg`. Give it the alt text `Brass sun hoop earrings` and lazy loading. Write the attributes in this order: `src`, `alt`, `loading`.
+
+Press **Run it**: the image file does not exist here, so you will see your alt text instead, exactly as a screen reader user would hear it.
+@@solution
+<img src="hoops.jpg" alt="Brass sun hoop earrings" loading="lazy">
+@@also
+<img src="hoops.jpg" alt="Brass sun hoop earrings" loading="lazy" />
+@@hint ^\s*<img\s
+Images use the `<img>` element, which has no closing tag.
+@@hint src=["']hoops\.jpg["']
+First attribute: `src="hoops.jpg"`
+@@hint alt=["']Brass sun hoop earrings["']
+Second: `alt="Brass sun hoop earrings"`
+@@hint loading=["']lazy["']
+Third: `loading="lazy"`, then close the tag with `>`.
+:::
+
 ## Forms
 
 ```html try
@@ -119,6 +156,33 @@ A page made of nothing but `<div>` elements works visually but is meaningless to
 ```
 
 Every input needs a `<label>` linked with `for` and `id`. Clicking the label focuses the input, and screen readers announce it. Input `type`s like `email`, `tel`, `number` and `date` give mobile users the right keyboard and free validation.
+
+:::exercise A labelled email field
+@@file index.html
+@@prompt
+Write a label and an email input that are linked together:
+
+1. A `label` with `for="email"` and the text `Email`.
+2. An `input` with these attributes in this order: `id="email"`, `name="email"`, `type="email"`, and `required`.
+@@solution
+<label for="email">Email</label>
+<input id="email" name="email" type="email" required>
+@@also
+<label for="email">Email</label>
+<input id="email" name="email" type="email" required />
+@@hint <label\s+for=["']email["']\s*>
+Line 1 opens with `<label for="email">`
+@@hint >\s*Email\s*</label>
+Then the text `Email` and the closing `</label>`.
+@@hint <input\s+id=["']email["']
+Line 2 starts `<input id="email"`. The `id` must match the label's `for`.
+@@hint name=["']email["']\s+type=["']email["']
+Then `name="email" type="email"`.
+@@hint required\s*/?>\s*$
+End with the word `required` and close the tag with `>`.
+@@explain
+`for="email"` on the label points at `id="email"` on the input. Clicking the label now focuses the field, and screen readers announce "Email". `type="email"` gives phone users an @ keyboard and free validation.
+:::
 
 ## Quiz
 

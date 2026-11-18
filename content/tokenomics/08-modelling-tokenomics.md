@@ -83,6 +83,40 @@ uv run model.py
 
 This is deliberately simple. It already answers useful questions: which months need the most demand, how sensitive the design is to investor selling, and whether moving the investor cliff from 12 to 18 months helps.
 
+:::exercise The unlock function in Python
+@@file model.py
+@@prompt
+Write the `unlocked` function from the model above in Python. Indent with 4 spaces (Tab does it for you):
+
+```python
+def unlocked(month, tge, cliff, vest):
+    if month < cliff:
+        return tge
+    if vest == 0:
+        return 1.0
+    return tge + (1 - tge) * min(1.0, (month - cliff) / vest)
+```
+@@solution
+def unlocked(month, tge, cliff, vest):
+    if month < cliff:
+        return tge
+    if vest == 0:
+        return 1.0
+    return tge + (1 - tge) * min(1.0, (month - cliff) / vest)
+@@hint ^def\s+unlocked\s*\(\s*month\s*,\s*tge\s*,\s*cliff\s*,\s*vest\s*\)\s*:
+Line 1: `def unlocked(month, tge, cliff, vest):` ending with a colon.
+@@hint ^ {4}if\s+month\s*<\s*cliff\s*:
+Line 2, indented 4 spaces: `if month < cliff:`
+@@hint ^ {8}return\s+tge\s*$
+Line 3, indented 8 spaces: `return tge`
+@@hint ^ {4}if\s+vest\s*==\s*0\s*:
+Line 4, back to 4 spaces: `if vest == 0:`
+@@hint ^ {8}return\s+1\.0\s*$
+Line 5, 8 spaces: `return 1.0`
+@@hint ^ {4}return\s+tge\s*\+\s*\(\s*1\s*-\s*tge\s*\)\s*\*\s*min\(\s*1\.0\s*,\s*\(\s*month\s*-\s*cliff\s*\)\s*\/\s*vest\s*\)
+Line 6, 4 spaces: `return tge + (1 - tge) * min(1.0, (month - cliff) / vest)`
+:::
+
 ## Going further
 
 - **Monte Carlo**: draw assumptions (growth, sell ratios) from ranges instead of single values, run thousands of times, and report the spread of outcomes, not one line.
@@ -108,6 +142,26 @@ This is deliberately simple. It already answers useful questions: which months n
 
 :::pro Portfolio project
 Pick a real token with a published schedule. Rebuild its unlock model, compare it with on-chain data, run the three scenarios, and write a two-page memo with charts and recommendations. That one piece of work demonstrates more tokenomics skill than any certificate.
+:::
+
+:::exercise Set up and run the model
+@@file Terminal
+@@lang bash
+@@prompt
+Four commands: create a uv project called `token-model`, move into it, add `pandas` and `matplotlib`, then run `model.py`.
+@@solution
+uv init token-model
+cd token-model
+uv add pandas matplotlib
+uv run model.py
+@@hint ^\s*uv\s+init\s+token-model\s*$
+Line 1: `uv init token-model`
+@@hint ^\s*cd\s+token-model\s*$
+Line 2: `cd token-model`
+@@hint ^\s*uv\s+add\s+pandas\s+matplotlib\s*$
+Line 3: `uv add pandas matplotlib`
+@@hint ^\s*uv\s+run\s+model\.py\s*$
+Line 4: `uv run model.py`
 :::
 
 ## Quiz

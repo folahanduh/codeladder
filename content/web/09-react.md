@@ -34,6 +34,22 @@ function ProductCard() {
 
 JSX differences from HTML: `className` instead of `class`, `htmlFor` instead of `for`, every tag must close (`<img />`), and `{curly braces}` drop in any JavaScript expression.
 
+:::exercise Your first component
+@@file ProductCard.tsx
+@@prompt
+Write a component called `ProductCard` that returns an `h2` saying `Linen Wrap Dress`. Three lines: the function line, a `return` line, and the closing brace.
+@@solution
+function ProductCard() {
+  return <h2>Linen Wrap Dress</h2>;
+}
+@@hint function\s+ProductCard\s*\(\s*\)\s*\{
+Line 1: `function ProductCard() {` (components start with a capital letter).
+@@hint return\s+<h2>\s*Linen Wrap Dress\s*</h2>
+Line 2: `return <h2>Linen Wrap Dress</h2>;` JSX goes straight after `return`.
+@@hint ^\s*\}\s*$
+Close the function with `}`.
+:::
+
 ## Props: inputs to a component
 
 ```tsx
@@ -84,6 +100,30 @@ setCart(cart.filter((item) => item.id !== id));                 // remove
 setCart(cart.map((item) => item.id === id ? { ...item, qty: item.qty + 1 } : item)); // update
 ```
 
+:::exercise State with useState
+@@file Counter.tsx
+@@prompt
+Write a `Counter` component:
+
+1. `function Counter() {`
+2. Create state: `const [qty, setQty] = useState(1);`
+3. Return a button that adds one when clicked: `return <button onClick={() => setQty(qty + 1)}>{qty}</button>;`
+4. `}`
+@@solution
+function Counter() {
+  const [qty, setQty] = useState(1);
+  return <button onClick={() => setQty(qty + 1)}>{qty}</button>;
+}
+@@hint function\s+Counter\s*\(\s*\)\s*\{
+Line 1: `function Counter() {`
+@@hint const\s*\[\s*qty\s*,\s*setQty\s*\]\s*=\s*useState\(\s*1\s*\)
+Line 2: `const [qty, setQty] = useState(1);` (square brackets on the left).
+@@hint onClick=\{\s*\(\s*\)\s*=>\s*setQty\(\s*qty\s*\+\s*1\s*\)\s*\}
+The click handler: `onClick={() => setQty(qty + 1)}`
+@@hint >\s*\{\s*qty\s*\}\s*</button>
+Between the tags show the value: `{qty}</button>;`
+:::
+
 ## Lists and keys
 
 ```tsx
@@ -95,6 +135,30 @@ setCart(cart.map((item) => item.id === id ? { ...item, qty: item.qty + 1 } : ite
 ```
 
 Each item needs a stable, unique `key` (an id, not the array index) so React can track which item is which.
+
+:::exercise Render a list with keys
+@@file ProductList.tsx
+@@prompt
+Inside a `ul`, map over `products` and return an `li` for each, with `key={p.id}` and the product's name. Three lines: `<ul>`, the map line, `</ul>`.
+@@solution
+<ul>
+  {products.map((p) => <li key={p.id}>{p.name}</li>)}
+</ul>
+@@also
+<ul>
+  {products.map(p => <li key={p.id}>{p.name}</li>)}
+</ul>
+@@hint ^\s*<ul>\s*$
+Line 1: `<ul>`
+@@hint \{\s*products\.map\(
+Line 2 starts with a curly brace (JavaScript inside JSX), then `products.map(`
+@@hint <li\s+key=\{\s*p\.id\s*\}\s*>
+Each item: `<li key={p.id}>`
+@@hint \{\s*p\.name\s*\}\s*</li>\s*\)\s*\}
+Then `{p.name}</li>`, close the map with `)` and the brace with `}`.
+@@hint ^\s*</ul>\s*$
+Line 3: `</ul>`
+:::
 
 ## Derived data: do not store what you can calculate
 

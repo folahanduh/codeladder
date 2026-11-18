@@ -106,6 +106,7 @@ window.CL_TOOLS = (function () {
   }
 
   function playground(root, api) {
+    const NAMES = { html: 'index.html', css: 'styles.css', js: 'script.js' };
     root.innerHTML = `
       <div class="tool-bar">
         <label class="field" style="grid-auto-flow:column;align-items:center;gap:8px"><span class="field-label">Start from</span>
@@ -113,16 +114,14 @@ window.CL_TOOLS = (function () {
         </label>
         <button class="btn btn-primary" type="button" id="pgRun">Run</button>
         <label class="row" style="gap:6px"><input type="checkbox" id="pgAuto" checked> Auto-run as you type</label>
-        <span class="muted small">Shortcut: <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs. <kbd>Tab</kbd> indents.</span>
+        <span class="muted small"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs. <kbd>Tab</kbd> indents.</span>
       </div>
       <div class="pg">
-        <div class="pg-editors">
-          <div class="tabs" role="tablist" aria-label="Code editors">
-            ${['html', 'css', 'js'].map((t) => `<button type="button" role="tab" data-tab="${t}" aria-selected="${pg.tab === t}">${t.toUpperCase()}</button>`).join('')}
+        <div class="pg-editors vsc-frame">
+          <div class="vsc-tabs" role="tablist" aria-label="Files">
+            ${['html', 'css', 'js'].map((t) => `<button type="button" class="vsc-tab" role="tab" data-tab="${t}" aria-selected="${pg.tab === t}"><span class="vsc-dot vsc-dot-${t}" aria-hidden="true"></span>${NAMES[t]}</button>`).join('')}
           </div>
-          <div>
-            ${['html', 'css', 'js'].map((t) => `<textarea class="code-input" id="pg-${t}" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="${t.toUpperCase()} code"${pg.tab === t ? '' : ' hidden'}>${esc(pg[t] || '')}</textarea>`).join('')}
-          </div>
+          <div id="pgEditors"></div>
         </div>
         <div class="pg-output">
           <div class="pg-out-head"><span>Preview</span></div>
@@ -137,24 +136,34 @@ window.CL_TOOLS = (function () {
 
     const frame = $('#pgFrame', root);
     const log = $('#pgLog', root);
-    const areas = { html: $('#pg-html', root), css: $('#pg-css', root), js: $('#pg-js', root) };
     let timer;
+    const schedule = () => {
+      if (!$('#pgAuto', root).checked) return;
+      clearTimeout(timer);
+      timer = setTimeout(run, 700);
+    };
+    const eds = {};
+    ['html', 'css', 'js'].forEach((t) => {
+      eds[t] = window.CL_EDITOR.create({ value: pg[t] || '', lang: t, file: NAMES[t], id: `pg-${t}`, bare: true, minLines: 18, label: `${t.toUpperCase()} code`, onSubmit: () => run(), onChange: schedule });
+      eds[t].el.hidden = pg.tab !== t;
+      $('#pgEditors', root).append(eds[t].el);
+    });
 
     const write = (type, text) => {
       const empty = $('.empty', log);
-      if (empty) empty.remove();
+      if (empty) empty.outerHTML = '';
       const line = document.createElement('div');
       line.className = type;
       line.textContent = (type === 'error' ? 'Error: ' : type === 'warn' ? 'Warning: ' : '') + text;
       log.append(line);
       log.scrollTop = log.scrollHeight;
     };
-    const run = () => {
-      pg = { html: areas.html.value, css: areas.css.value, js: areas.js.value, tab: pg.tab };
+    function run() {
+      pg = { html: eds.html.getValue(), css: eds.css.getValue(), js: eds.js.getValue(), tab: pg.tab };
       store.set(PG_KEY, pg);
       log.innerHTML = '';
       frame.srcdoc = buildDoc(pg);
-    };
+    }
     const onMsg = (e) => {
       if (e.source !== frame.contentWindow || !e.data || !e.data.__pg) return;
       write(e.data.type, e.data.text);
@@ -165,32 +174,17 @@ window.CL_TOOLS = (function () {
     $$('[data-tab]', root).forEach((b) => b.addEventListener('click', () => {
       pg.tab = b.dataset.tab;
       $$('[data-tab]', root).forEach((x) => x.setAttribute('aria-selected', String(x === b)));
-      Object.entries(areas).forEach(([k, a]) => { a.hidden = k !== pg.tab; });
-      areas[pg.tab].focus();
+      Object.entries(eds).forEach(([k, ed]) => { ed.el.hidden = k !== pg.tab; });
+      eds[pg.tab].refresh();
+      eds[pg.tab].focus();
       store.set(PG_KEY, pg);
     }));
-    Object.values(areas).forEach((a) => {
-      a.addEventListener('keydown', (e) => {
-        if (e.key === 'Tab' && !e.shiftKey) {
-          e.preventDefault();
-          const s = a.selectionStart, en = a.selectionEnd;
-          a.value = a.value.slice(0, s) + '  ' + a.value.slice(en);
-          a.selectionStart = a.selectionEnd = s + 2;
-        }
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); run(); }
-      });
-      a.addEventListener('input', () => {
-        if (!$('#pgAuto', root).checked) return;
-        clearTimeout(timer);
-        timer = setTimeout(run, 700);
-      });
-    });
     $('#pgRun', root).addEventListener('click', run);
     $('#pgClear', root).addEventListener('click', () => { log.innerHTML = ''; });
     $('#pgTemplate', root).addEventListener('change', (e) => {
       const t = TEMPLATES[Number(e.target.value)];
       if (!t) return;
-      areas.html.value = t.html; areas.css.value = t.css; areas.js.value = t.js;
+      eds.html.setValue(t.html); eds.css.setValue(t.css); eds.js.setValue(t.js);
       run();
       api.toast(`Loaded: ${t.name}`);
       e.target.value = '';
@@ -811,5 +805,5 @@ node -e "console.log(require('crypto').createHash('sha256').update('hello').dige
     drawIL();
   }
 
-  return { playground, hashLab, tokenSim, amm, loadIntoPlayground, beforeLeave, sha256 };
+  return { playground, hashLab, tokenSim, amm, loadIntoPlayground, beforeLeave, sha256, buildDoc };
 })();

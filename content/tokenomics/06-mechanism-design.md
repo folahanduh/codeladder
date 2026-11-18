@@ -35,6 +35,21 @@ veToken holders typically get:
 
 Why it works: it rewards long-term commitment and removes supply from the market. Side effects: protocols compete to direct emissions, creating **bribe markets** where projects pay veToken holders to vote for their pools, and meta-protocols that pool locks. Liquidity of locked positions becomes a problem of its own.
 
+:::exercise Vote-escrow voting power
+@@file ve.js
+@@prompt
+Write an arrow function `votingPower` that takes `tokens` and `yearsLocked` and returns `tokens * (yearsLocked / 4)`. Print `votingPower(2000, 2)`.
+@@solution
+const votingPower = (tokens, yearsLocked) => tokens * (yearsLocked / 4);
+console.log(votingPower(2000, 2));
+@@hint const\s+votingPower\s*=\s*\(\s*tokens\s*,\s*yearsLocked\s*\)\s*=>
+Line 1 starts `const votingPower = (tokens, yearsLocked) =>`
+@@hint tokens\s*\*\s*\(\s*yearsLocked\s*\/\s*4\s*\)
+then `tokens * (yearsLocked / 4);`
+@@hint votingPower\(\s*2000\s*,\s*2\s*\)
+Line 2: `console.log(votingPower(2000, 2));`
+:::
+
 ## Bonding curves
 
 A **bonding curve** is a contract that mints tokens when you buy and burns them when you sell, at a price set by a formula of the current supply:
@@ -61,6 +76,25 @@ console.log('reserve held by the curve:', cost(0, supply).toFixed(2), 'USDC');
 ```
 
 Properties: always liquid (the contract is the counterparty), price discovery without an order book, and the reserve always covers selling everyone back down the curve. Risks: early buyers profit directly from later buyers, which drives speculation; front-running on each purchase; the shape of the curve hard-codes who wins. Many token launchpads use curves to bootstrap a token before moving it to an AMM.
+
+:::exercise Cost to buy on a bonding curve
+@@file curve.js
+@@prompt
+Write `cost` as an arrow function of `s1` and `s2`: `(0.000001 / 2) * (s2 ** 2 - s1 ** 2) + 0.01 * (s2 - s1)`. Print `cost(0, 10000)`.
+@@solution
+const cost = (s1, s2) => (0.000001 / 2) * (s2 ** 2 - s1 ** 2) + 0.01 * (s2 - s1);
+console.log(cost(0, 10000));
+@@hint const\s+cost\s*=\s*\(\s*s1\s*,\s*s2\s*\)\s*=>
+Line 1 starts `const cost = (s1, s2) =>`
+@@hint \(\s*0\.000001\s*\/\s*2\s*\)\s*\*\s*\(\s*s2\s*\*\*\s*2\s*-\s*s1\s*\*\*\s*2\s*\)
+first term: `(0.000001 / 2) * (s2 ** 2 - s1 ** 2)`
+@@hint \+\s*0\.01\s*\*\s*\(\s*s2\s*-\s*s1\s*\)
+second term: `+ 0.01 * (s2 - s1);`
+@@hint cost\(\s*0\s*,\s*10000\s*\)
+Line 2: `console.log(cost(0, 10000));`
+@@explain
+Output: about `150`: the first 10,000 tokens cost 150 USDC in total, matching the lesson's example (floating-point maths may show a tiny rounding tail).
+:::
 
 ## Governance attacks
 

@@ -60,6 +60,24 @@ npx vitest          # watch mode: re-runs on every save
 
 Each test follows **Arrange, Act, Assert**: set up the data, run the code, check the result.
 
+:::exercise Write a unit test
+@@file cart.test.ts
+@@prompt
+Write a Vitest test named `'returns 0 for an empty cart'` that expects `cartTotal([])` to be `0`. Three lines.
+@@solution
+it('returns 0 for an empty cart', () => {
+  expect(cartTotal([])).toBe(0);
+});
+@@hint ^\s*it\(\s*['"]returns 0 for an empty cart['"]\s*,
+Line 1 starts `it('returns 0 for an empty cart',`
+@@hint ,\s*\(\s*\)\s*=>\s*\{
+then an arrow function: `() => {`
+@@hint expect\(\s*cartTotal\(\s*\[\s*\]\s*\)\s*\)\.toBe\(\s*0\s*\)
+Line 2: `expect(cartTotal([])).toBe(0);`
+@@hint ^\s*\}\s*\)\s*;?\s*$
+Line 3: `});`
+:::
+
 ## Component tests with Testing Library
 
 Test what the user sees and does, not implementation details:
@@ -100,6 +118,21 @@ test('a shopper can add a dress to the bag', async ({ page }) => {
 npx playwright test
 npx playwright test --ui     # watch it click through, step by step
 ```
+
+:::exercise An end-to-end step
+@@file checkout.spec.ts
+@@prompt
+Two Playwright lines: click the button whose accessible name is `'Add to bag'`, then expect the text `'Linen Wrap Dress'` to be visible.
+@@solution
+await page.getByRole('button', { name: 'Add to bag' }).click();
+await expect(page.getByText('Linen Wrap Dress')).toBeVisible();
+@@hint await\s+page\.getByRole\(\s*['"]button['"]\s*,
+Line 1 starts `await page.getByRole('button',`
+@@hint \{\s*name\s*:\s*['"]Add to bag['"]\s*\}\s*\)\.click\(\s*\)
+then `{ name: 'Add to bag' }).click();`
+@@hint await\s+expect\(\s*page\.getByText\(\s*['"]Linen Wrap Dress['"]\s*\)\s*\)\.toBeVisible\(\s*\)
+Line 2: `await expect(page.getByText('Linen Wrap Dress')).toBeVisible();`
+:::
 
 ## What is worth testing
 

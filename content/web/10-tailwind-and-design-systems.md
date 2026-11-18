@@ -18,6 +18,22 @@ Instead of inventing class names and writing CSS in a separate file, Tailwind gi
 
 Each class does one thing: `px-5` is horizontal padding, `bg-orange-700` a background colour, `hover:` applies a style on hover. You rarely leave your HTML, and unused classes are removed from the final CSS automatically.
 
+:::exercise A button made of utilities
+@@file Button.html
+@@lang html
+@@run false
+@@prompt
+Write a `button` with these Tailwind classes, in this order: `rounded-full bg-orange-700 px-5 py-3 font-semibold text-white`. The text is `Shop the drop`.
+@@solution
+<button class="rounded-full bg-orange-700 px-5 py-3 font-semibold text-white">Shop the drop</button>
+@@hint <button\s+class=["']
+Start with `<button class="`
+@@hint rounded-full\s+bg-orange-700\s+px-5\s+py-3\s+font-semibold\s+text-white
+The classes, separated by spaces: `rounded-full bg-orange-700 px-5 py-3 font-semibold text-white`
+@@hint >\s*Shop the drop\s*</button>
+Close the quote and tag, then `Shop the drop</button>`
+:::
+
 ## Set it up in a Vite project
 
 ```bash
@@ -84,6 +100,26 @@ A **design system** is a set of decisions (colours, type sizes, spacing, radius)
 ```
 
 Now `bg-brand`, `text-ink` and `font-display` exist as classes. Rebranding a client's site becomes a five-line change.
+
+:::exercise Brand tokens with @theme
+@@file index.css
+@@run false
+@@prompt
+After `@import "tailwindcss";`, a `@theme` block defines your brand tokens. Write the block with two colours: `--color-brand: #b4532a;` and `--color-ink: #1f1a17;`
+@@solution
+@theme {
+  --color-brand: #b4532a;
+  --color-ink: #1f1a17;
+}
+@@hint ^\s*@theme\s*\{
+Line 1: `@theme {`
+@@hint --color-brand\s*:\s*#b4532a
+`--color-brand: #b4532a;`
+@@hint --color-ink\s*:\s*#1f1a17
+`--color-ink: #1f1a17;`
+@@explain
+Tailwind turns each `--color-*` token into classes: `bg-brand`, `text-ink`, `border-brand` and so on.
+:::
 
 ## Components stop repetition
 

@@ -39,6 +39,25 @@ is low or negative **and** demand holds up. Ethereum's EIP-1559 burns the base f
 
 **Buybacks** use protocol revenue to buy tokens on the market (then burn them or send them to stakers or the treasury). They link token demand to business performance, which is why many mature protocols favour them.
 
+:::exercise Inflationary or deflationary?
+@@file net.js
+@@prompt
+Four lines: `const emitted = 10_000_000;`, `const burned = 1_000_000;`, `const net = emitted - burned;`, then print `net > 0 ? 'Inflationary' : 'Deflationary'` and `net` in the same `console.log`.
+@@solution
+const emitted = 10_000_000;
+const burned = 1_000_000;
+const net = emitted - burned;
+console.log(net > 0 ? 'Inflationary' : 'Deflationary', net);
+@@hint const\s+emitted\s*=\s*10_000_000
+Line 1: `const emitted = 10_000_000;`
+@@hint const\s+burned\s*=\s*1_000_000
+Line 2: `const burned = 1_000_000;`
+@@hint const\s+net\s*=\s*emitted\s*-\s*burned
+Line 3: `const net = emitted - burned;`
+@@hint net\s*>\s*0\s*\?\s*['"]Inflationary['"]\s*:\s*['"]Deflationary['"]\s*,\s*net
+Line 4: `console.log(net > 0 ? 'Inflationary' : 'Deflationary', net);`
+:::
+
 ## Mercenary capital
 
 In 2020's "DeFi summer", protocols handed out huge token emissions to attract liquidity. Capital flooded in, farmed the rewards, sold them, and left the moment rewards dropped. Lessons the industry learned:
@@ -70,6 +89,24 @@ Try changing the burn to 10M and the decay to 0.5. When does net inflation turn 
 
 :::pro The sustainability test
 Imagine the token price drops 80% and stays there for a year. Do validators or stakers still have a reason to stay? Does the treasury still cover two years of costs? Do users still use the product? Designs that pass this test survive bear markets.
+:::
+
+:::exercise Real return after dilution
+@@file real.js
+@@prompt
+Three lines: `const apy = 0.25;`, `const inflation = 0.25;`, then print `((1 + apy) / (1 + inflation) - 1) * 100`.
+@@solution
+const apy = 0.25;
+const inflation = 0.25;
+console.log(((1 + apy) / (1 + inflation) - 1) * 100);
+@@hint const\s+apy\s*=\s*0\.25
+Line 1: `const apy = 0.25;`
+@@hint const\s+inflation\s*=\s*0\.25
+Line 2: `const inflation = 0.25;`
+@@hint \(\s*\(\s*1\s*\+\s*apy\s*\)\s*\/\s*\(\s*1\s*\+\s*inflation\s*\)\s*-\s*1\s*\)\s*\*\s*100
+Line 3: `console.log(((1 + apy) / (1 + inflation) - 1) * 100);` Count the brackets.
+@@explain
+Output: `0`. A 25% yield paid in new tokens, while supply grows 25%, leaves your real share exactly where it was.
 :::
 
 ## Quiz

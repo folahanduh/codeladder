@@ -35,6 +35,27 @@ git log --oneline
 
 `git status` is the command you will run more than any other. It tells you what changed and what is staged.
 
+:::exercise Your first commit
+@@file Terminal
+@@lang bash
+@@prompt
+Inside a project folder that has a `README.md`, type the three commands that: start a Git repository, stage `README.md`, and commit it with the message `Add README`.
+@@solution
+git init
+git add README.md
+git commit -m "Add README"
+@@hint ^\s*git\s+init\s*$
+Line 1: `git init` creates the repository.
+@@hint ^\s*git\s+add\s+README\.md\s*$
+Line 2: `git add README.md` stages the file (README in capitals, like the file name).
+@@hint git\s+commit\s+-m\s+
+Line 3 starts `git commit -m` (m for message).
+@@hint -m\s+["']Add README["']
+The message goes in quotes: `"Add README"`
+@@explain
+`init` creates the hidden `.git` folder that stores history. `add` moves changes into the staging area. `commit` saves a permanent snapshot with your message. Run `git log --oneline` afterwards to see it.
+:::
+
 ## The daily loop
 
 ```bash
@@ -84,6 +105,37 @@ git switch -c add-contact-form    # create and switch to a new branch
 git switch main
 git merge add-contact-form
 ```
+
+:::exercise Work on a branch, then merge it
+@@file Terminal
+@@lang bash
+@@prompt
+Type the five commands for this workflow:
+
+1. Create and switch to a new branch called `add-contact-form`.
+2. Stage everything.
+3. Commit with the message `Add contact form`.
+4. Switch back to `main`.
+5. Merge `add-contact-form` into it.
+@@solution
+git switch -c add-contact-form
+git add .
+git commit -m "Add contact form"
+git switch main
+git merge add-contact-form
+@@hint ^\s*git\s+switch\s+-c\s+add-contact-form\s*$
+Line 1: `git switch -c add-contact-form` (`-c` means create).
+@@hint ^\s*git\s+add\s+\.\s*$
+Line 2: `git add .` (the dot means "everything in this folder").
+@@hint git\s+commit\s+-m\s+["']Add contact form["']
+Line 3: `git commit -m "Add contact form"`
+@@hint ^\s*git\s+switch\s+main\s*$
+Line 4: `git switch main` (no `-c`: main already exists).
+@@hint ^\s*git\s+merge\s+add-contact-form\s*$
+Line 5: `git merge add-contact-form`
+@@explain
+The branch let you build the form without touching `main`. Merging brings those commits into `main` once they are ready. On teams, step 5 happens through a pull request instead.
+:::
 
 ## Free hosting with GitHub Pages
 

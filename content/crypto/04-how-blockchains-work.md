@@ -62,6 +62,32 @@ ETH has 18 decimal places. The smallest unit is the **wei**:
 Fee = 21,000 gas x (base 8 gwei + tip 1 gwei) = 189,000 gwei = 0.000189 ETH
 ```
 
+:::exercise Calculate a gas fee in wei
+@@file fee.js
+@@prompt
+Work out the fee for a plain transfer (21,000 gas) at 9 gwei, using BigInt (numbers ending in `n`). Four lines:
+
+1. `const gasUsed = 21000n;`
+2. `const gasPriceWei = 9n * 10n ** 9n;` (9 gwei)
+3. `const feeWei = gasUsed * gasPriceWei;`
+4. `console.log(feeWei.toString());`
+@@solution
+const gasUsed = 21000n;
+const gasPriceWei = 9n * 10n ** 9n;
+const feeWei = gasUsed * gasPriceWei;
+console.log(feeWei.toString());
+@@hint const\s+gasUsed\s*=\s*21000n
+Line 1: `const gasUsed = 21000n;` (the `n` makes it a BigInt).
+@@hint const\s+gasPriceWei\s*=\s*9n\s*\*\s*10n\s*\*\*\s*9n
+Line 2: `const gasPriceWei = 9n * 10n ** 9n;`
+@@hint const\s+feeWei\s*=\s*gasUsed\s*\*\s*gasPriceWei
+Line 3: `const feeWei = gasUsed * gasPriceWei;`
+@@hint feeWei\.toString\(\s*\)
+Line 4: `console.log(feeWei.toString());`
+@@explain
+Output: `189000000000000` wei, which is 0.000189 ETH. Wallets do exactly this maths with integers, then format it for display.
+:::
+
 ## Layer 1 and Layer 2
 
 Ethereum mainnet (Layer 1) is secure but limited in throughput, so fees rise when busy. **Layer 2 rollups** (Arbitrum, Optimism, Base, zkSync, Starknet and others) execute transactions cheaply, then post compressed data and proofs back to Ethereum. Most everyday activity now happens on L2s. Same Solidity code, same tools.
@@ -82,6 +108,20 @@ cast balance 0xYourAddress --ether --rpc-url $SEPOLIA_RPC_URL
 cast to-wei 0.1
 cast from-wei 189000000000000
 ```
+
+:::exercise Query the chain with cast
+@@file Terminal
+@@lang bash
+@@prompt
+Two Foundry commands: get the latest block number using the RPC URL in `$SEPOLIA_RPC_URL`, then convert `0.1` ether to wei.
+@@solution
+cast block-number --rpc-url $SEPOLIA_RPC_URL
+cast to-wei 0.1
+@@hint ^\s*cast\s+block-number\s+--rpc-url\s+\$SEPOLIA_RPC_URL\s*$
+Line 1: `cast block-number --rpc-url $SEPOLIA_RPC_URL`
+@@hint ^\s*cast\s+to-wei\s+0\.1\s*$
+Line 2: `cast to-wei 0.1`
+:::
 
 ## Quiz
 

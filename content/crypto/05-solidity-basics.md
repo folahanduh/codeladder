@@ -74,6 +74,28 @@ contract TipJar {
 }
 ```
 
+:::exercise Write the tip function
+@@file TipJar.sol
+@@prompt
+From memory if you can, write the `tip` function: it is `external payable`, takes `string calldata message`, reverts with `NoTipSent()` if no ETH was sent, adds `msg.value` to `tipsFrom[msg.sender]`, and emits `Tipped(msg.sender, msg.value, message)`.
+@@solution
+function tip(string calldata message) external payable {
+    if (msg.value == 0) revert NoTipSent();
+    tipsFrom[msg.sender] += msg.value;
+    emit Tipped(msg.sender, msg.value, message);
+}
+@@hint function\s+tip\s*\(\s*string\s+calldata\s+message\s*\)
+Line 1 starts `function tip(string calldata message)`
+@@hint \)\s*external\s+payable\s*\{
+then `external payable {`. Without `payable` the function cannot receive ETH.
+@@hint if\s*\(\s*msg\.value\s*==\s*0\s*\)\s*revert\s+NoTipSent\(\s*\)\s*;
+Line 2: `if (msg.value == 0) revert NoTipSent();`
+@@hint tipsFrom\[\s*msg\.sender\s*\]\s*\+=\s*msg\.value\s*;
+Line 3: `tipsFrom[msg.sender] += msg.value;`
+@@hint emit\s+Tipped\(\s*msg\.sender\s*,\s*msg\.value\s*,\s*message\s*\)\s*;
+Line 4: `emit Tipped(msg.sender, msg.value, message);`
+:::
+
 ## The pieces, explained
 
 - `pragma solidity ^0.8.24;` pins the compiler version. Since 0.8, arithmetic overflow reverts automatically.
@@ -85,6 +107,23 @@ contract TipJar {
 - **Errors**: `revert` undoes everything the transaction did. `require(condition, "message")` also works; custom errors are cheaper.
 - **Events**: logs that front ends and indexers read. Indexed parameters can be filtered.
 - **Data locations**: `storage` (permanent, expensive), `memory` (temporary), `calldata` (read-only input, cheapest).
+
+:::exercise Write a modifier
+@@file TipJar.sol
+@@prompt
+Write the `onlyOwner` modifier: if `msg.sender` is not `owner`, revert with `NotOwner()`; otherwise continue with `_;`.
+@@solution
+modifier onlyOwner() {
+    if (msg.sender != owner) revert NotOwner();
+    _;
+}
+@@hint ^\s*modifier\s+onlyOwner\s*\(\s*\)\s*\{
+Line 1: `modifier onlyOwner() {`
+@@hint if\s*\(\s*msg\.sender\s*!=\s*owner\s*\)\s*revert\s+NotOwner\(\s*\)\s*;
+Line 2: `if (msg.sender != owner) revert NotOwner();`
+@@hint ^\s*_\s*;\s*$
+Line 3 is just an underscore and a semicolon: `_;` It means "now run the function".
+:::
 
 ## Test it
 
@@ -143,6 +182,26 @@ forge test -vv
 
 :::tip Make the compiler your teacher
 Run `forge build` often and read the warnings, not just the errors. Install the Solidity extension in VS Code for inline errors. When something confuses you, `chisel` (installed with Foundry) is a Solidity REPL where you can try expressions instantly.
+:::
+
+:::exercise Write a Foundry test
+@@file TipJar.t.sol
+@@prompt
+Write `test_TipIsRecorded`: as `alice` (`vm.prank`), tip 1 ether with the message `"great work"`, then assert `jar.totalTips()` equals `1 ether`.
+@@solution
+function test_TipIsRecorded() public {
+    vm.prank(alice);
+    jar.tip{value: 1 ether}("great work");
+    assertEq(jar.totalTips(), 1 ether);
+}
+@@hint function\s+test_TipIsRecorded\s*\(\s*\)\s*public\s*\{
+Line 1: `function test_TipIsRecorded() public {`
+@@hint vm\.prank\(\s*alice\s*\)\s*;
+Line 2: `vm.prank(alice);`
+@@hint jar\.tip\{\s*value\s*:\s*1\s+ether\s*\}\(\s*["']great work["']\s*\)\s*;
+Line 3 sends ETH with curly braces before the arguments: `jar.tip{value: 1 ether}("great work");`
+@@hint assertEq\(\s*jar\.totalTips\(\s*\)\s*,\s*1\s+ether\s*\)\s*;
+Line 4: `assertEq(jar.totalTips(), 1 ether);`
 :::
 
 ## Quiz

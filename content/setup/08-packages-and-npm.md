@@ -25,6 +25,23 @@ That creates three things:
 - `package-lock.json`: the exact version of every package installed, including dependencies of dependencies.
 - `node_modules/`: the installed code. Never edit it, never commit it.
 
+:::exercise Start a project and add packages
+@@file Terminal
+@@lang bash
+@@prompt
+Type three commands: create a `package.json` with the default answers, install `date-fns` as a normal dependency, and install `prettier` as a **dev** dependency.
+@@solution
+npm init -y
+npm install date-fns
+npm install -D prettier
+@@hint ^\s*npm\s+init\s+-y\s*$
+Line 1: `npm init -y` (`-y` says yes to every question).
+@@hint ^\s*npm\s+install\s+date-fns\s*$
+Line 2: `npm install date-fns`
+@@hint npm\s+install\s+-D\s+prettier
+Line 3: dev dependencies use `-D`: `npm install -D prettier`
+:::
+
 ## Reading package.json
 
 ```json
@@ -61,6 +78,27 @@ Versions look like `MAJOR.MINOR.PATCH`, e.g. `4.1.0`:
 | MAJOR (**5**.0.0) | Breaking changes | Read the changelog first |
 
 `^4.1.0` means "any 4.x.x at least 4.1.0". `~4.1.0` means "any 4.1.x". The lockfile pins the exact version so everyone on the team gets identical installs. **Commit the lockfile.**
+
+:::exercise Add scripts to package.json
+@@file package.json
+@@prompt
+Write the `"scripts"` section with two scripts: `dev` runs `node --watch index.js`, and `format` runs `prettier --write .`
+@@solution
+"scripts": {
+  "dev": "node --watch index.js",
+  "format": "prettier --write ."
+}
+@@hint ^\s*"scripts"\s*:\s*\{
+Line 1: `"scripts": {`
+@@hint "dev"\s*:\s*"node --watch index\.js"\s*,
+Line 2: `"dev": "node --watch index.js",` with a comma at the end.
+@@hint "format"\s*:\s*"prettier --write \."
+Line 3: `"format": "prettier --write ."` with no comma (it is the last one).
+@@hint ^\s*\}\s*$
+Close the section with `}`.
+@@explain
+Now `npm run dev` starts your app and restarts it on every save, and `npm run format` tidies every file. Scripts mean nobody on a team has to remember long commands.
+:::
 
 ## Useful commands
 

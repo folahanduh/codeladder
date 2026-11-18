@@ -50,6 +50,28 @@ for (const size of [100, 1_000, 10_000, 50_000]) {
 }
 ```
 
+:::exercise Write the swap formula
+@@file amm.js
+@@prompt
+Write `getAmountOut(amountIn, reserveIn, reserveOut)` with a 0.3% fee: `inWithFee` is `amountIn * 0.997`, and the function returns `(reserveOut * inWithFee) / (reserveIn + inWithFee)`. Then print `getAmountOut(10000, 250000, 1000000)`.
+@@solution
+function getAmountOut(amountIn, reserveIn, reserveOut) {
+  const inWithFee = amountIn * 0.997;
+  return (reserveOut * inWithFee) / (reserveIn + inWithFee);
+}
+console.log(getAmountOut(10000, 250000, 1000000));
+@@hint function\s+getAmountOut\s*\(\s*amountIn\s*,\s*reserveIn\s*,\s*reserveOut\s*\)\s*\{
+Line 1: `function getAmountOut(amountIn, reserveIn, reserveOut) {`
+@@hint const\s+inWithFee\s*=\s*amountIn\s*\*\s*0\.997
+Line 2: `const inWithFee = amountIn * 0.997;`
+@@hint return\s*\(\s*reserveOut\s*\*\s*inWithFee\s*\)\s*\/\s*\(\s*reserveIn\s*\+\s*inWithFee\s*\)
+Line 3: `return (reserveOut * inWithFee) / (reserveIn + inWithFee);`
+@@hint getAmountOut\(\s*10000\s*,\s*250000\s*,\s*1000000\s*\)
+Last line: `console.log(getAmountOut(10000, 250000, 1000000));`
+@@explain
+Output: about `38350.58` tokens, matching the worked example. This is the same maths Uniswap v2's contracts run, written with integers on-chain.
+:::
+
 ## Slippage protection
 
 Between signing your swap and it landing in a block, other trades can move the price. Your **slippage tolerance** sets the worst price you accept (as a minimum amount out). Too tight and the transaction fails; too loose and bots can sandwich you. A deadline stops a stale transaction executing hours later.
@@ -69,6 +91,30 @@ price x0.5 -> about -5.7%
 ```
 
 LPs profit only when fees earned exceed impermanent loss. Pools of two assets that move together (like two stablecoins) have little IL.
+
+:::exercise Impermanent loss in one line
+@@file il.js
+@@prompt
+Write an arrow function `il` that takes `r` and returns `(2 * Math.sqrt(r)) / (1 + r) - 1`, then print `il(2)` and `il(4)`.
+@@solution
+const il = (r) => (2 * Math.sqrt(r)) / (1 + r) - 1;
+console.log(il(2));
+console.log(il(4));
+@@also
+const il = r => (2 * Math.sqrt(r)) / (1 + r) - 1;
+console.log(il(2));
+console.log(il(4));
+@@hint const\s+il\s*=\s*\(?\s*r\s*\)?\s*=>
+Line 1 starts `const il = (r) =>`
+@@hint \(\s*2\s*\*\s*Math\.sqrt\(\s*r\s*\)\s*\)\s*\/\s*\(\s*1\s*\+\s*r\s*\)\s*-\s*1
+The formula: `(2 * Math.sqrt(r)) / (1 + r) - 1`
+@@hint console\.log\(\s*il\(\s*2\s*\)\s*\)
+`console.log(il(2));`
+@@hint console\.log\(\s*il\(\s*4\s*\)\s*\)
+`console.log(il(4));`
+@@explain
+Output: about `-0.057` (a 5.7% loss when the price doubles) and `-0.2` (20% when it quadruples), compared with just holding.
+:::
 
 ## Concentrated liquidity
 

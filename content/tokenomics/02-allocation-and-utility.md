@@ -36,6 +36,28 @@ A token needs a job. Common **utilities**:
 | **Rewards / points** | Earned for activity | Drives usage (but is also new supply to sell) |
 | **Fee share / buybacks** | Protocol revenue flows to stakers or buys tokens | Links token value to real business performance |
 
+:::exercise Check an allocation adds up
+@@file allocation.js
+@@prompt
+Three lines:
+
+1. `const allocation = { team: 18, investors: 17, community: 45, treasury: 20 };`
+2. `const total = Object.values(allocation).reduce((sum, pct) => sum + pct, 0);`
+3. `console.log(total === 100 ? 'Adds up' : 'Check the numbers');`
+@@solution
+const allocation = { team: 18, investors: 17, community: 45, treasury: 20 };
+const total = Object.values(allocation).reduce((sum, pct) => sum + pct, 0);
+console.log(total === 100 ? 'Adds up' : 'Check the numbers');
+@@hint const\s+allocation\s*=\s*\{\s*team\s*:\s*18\s*,\s*investors\s*:\s*17\s*,\s*community\s*:\s*45\s*,\s*treasury\s*:\s*20\s*\}
+Line 1 is an object: `{ team: 18, investors: 17, community: 45, treasury: 20 }`
+@@hint Object\.values\(\s*allocation\s*\)
+Line 2 starts from `Object.values(allocation)`, which gives `[18, 17, 45, 20]`.
+@@hint \.reduce\(\s*\(\s*sum\s*,\s*pct\s*\)\s*=>\s*sum\s*\+\s*pct\s*,\s*0\s*\)
+then `.reduce((sum, pct) => sum + pct, 0)`
+@@hint total\s*===\s*100\s*\?\s*['"]Adds up['"]\s*:\s*['"]Check the numbers['"]
+Line 3: `console.log(total === 100 ? 'Adds up' : 'Check the numbers');`
+:::
+
 ## The two questions that matter most
 
 **1. Would the product work just as well without the token?** If yes, the token is probably a fundraising tool, and its price depends on speculation alone.
@@ -57,6 +79,25 @@ Insiders above about 40%. Short or no vesting for team and investors. A large "m
 
 :::pro For marketers and founders
 If you help brands launch tokens or token-gated communities, lead with utility and fairness, not price. Projects that publish clear allocations, on-chain vesting contracts and a real reason to hold the token build trust that hype cannot.
+:::
+
+:::exercise Flag insider-heavy allocations
+@@file insiders.js
+@@prompt
+Four lines: `const team = 18;`, `const investors = 17;`, `const insiders = team + investors;`, then print `insiders > 40 ? 'Red flag' : 'OK'`.
+@@solution
+const team = 18;
+const investors = 17;
+const insiders = team + investors;
+console.log(insiders > 40 ? 'Red flag' : 'OK');
+@@hint const\s+team\s*=\s*18
+Line 1: `const team = 18;`
+@@hint const\s+investors\s*=\s*17
+Line 2: `const investors = 17;`
+@@hint const\s+insiders\s*=\s*team\s*\+\s*investors
+Line 3: `const insiders = team + investors;`
+@@hint insiders\s*>\s*40\s*\?\s*['"]Red flag['"]\s*:\s*['"]OK['"]
+Line 4: `console.log(insiders > 40 ? 'Red flag' : 'OK');`
 :::
 
 ## Quiz

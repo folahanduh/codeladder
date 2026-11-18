@@ -31,6 +31,22 @@ let status: 'draft' | 'live' | 'archived' = 'draft';   // literal union: only th
 
 You rarely need annotations on variables. TypeScript **infers** them: `let stock = 12` is already a `number`. Annotate function parameters, return types of exported functions, and data shapes.
 
+:::exercise Add types to a function
+@@file money.ts
+@@prompt
+Write a TypeScript function `formatGBP` that takes `pence` of type `number` and returns a `string`: a template literal with a pound sign and `${(pence / 100).toFixed(2)}`.
+@@solution
+function formatGBP(pence: number): string {
+  return `£${(pence / 100).toFixed(2)}`;
+}
+@@hint function\s+formatGBP\s*\(\s*pence\s*:\s*number\s*\)
+Parameter types go after a colon: `function formatGBP(pence: number)`
+@@hint \)\s*:\s*string\s*\{
+The return type goes after the closing bracket: `): string {`
+@@hint return\s+`£\$\{\s*\(\s*pence\s*\/\s*100\s*\)\.toFixed\(\s*2\s*\)\s*\}`
+Line 2: `return` then a template literal: backtick, `£${(pence / 100).toFixed(2)}`, backtick.
+:::
+
 ## Describing objects
 
 ```ts
@@ -55,6 +71,29 @@ function displayPrice(p: Product): number {
 ```
 
 `interface Product { ... }` does almost the same as `type Product = { ... }`. Pick one style per project; `type` is more flexible.
+
+:::exercise Describe a product type
+@@file product.ts
+@@prompt
+Write a `type` called `Product` with four properties: `id` (string), `name` (string), `pricePence` (number), and an **optional** `salePricePence` (number).
+@@solution
+type Product = {
+  id: string;
+  name: string;
+  pricePence: number;
+  salePricePence?: number;
+};
+@@hint ^\s*type\s+Product\s*=\s*\{
+Line 1: `type Product = {`
+@@hint id\s*:\s*string
+`id: string;`
+@@hint name\s*:\s*string
+`name: string;`
+@@hint pricePence\s*:\s*number
+`pricePence: number;`
+@@hint salePricePence\?\s*:\s*number
+Optional properties get a question mark before the colon: `salePricePence?: number;`
+:::
 
 ## Narrowing
 
@@ -117,6 +156,26 @@ const product = ProductSchema.parse(await res.json());   // throws if the shape 
 
 :::tip Avoid any
 `any` switches type checking off for that value, and it spreads. If you truly do not know a type yet, use `unknown`, which forces you to check before using it.
+:::
+
+:::exercise A union of allowed values
+@@file status.ts
+@@prompt
+Two lines:
+
+1. A type `Status` that only allows `'draft'`, `'live'` or `'archived'` (separate them with the `|` symbol).
+2. A variable (`let`) `status` of type `Status`, set to `'draft'`.
+@@solution
+type Status = 'draft' | 'live' | 'archived';
+let status: Status = 'draft';
+@@hint type\s+Status\s*=
+Line 1 starts `type Status =`
+@@hint ['"]draft['"]\s*\|\s*['"]live['"]\s*\|\s*['"]archived['"]
+List the three strings with a bar between each: `'draft' | 'live' | 'archived'`
+@@hint let\s+status\s*:\s*Status\s*=\s*['"]draft['"]
+Line 2: `let status: Status = 'draft';`
+@@explain
+Now `status = 'deleted'` is an error in your editor before the code ever runs, and typing `status = '` offers the three valid options.
 :::
 
 ## Quiz

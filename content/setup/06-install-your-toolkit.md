@@ -36,6 +36,25 @@ code --version
 
 Each should print a version number or "Logged in". If one says "command not found", that tool is not installed or not on your **PATH** (the list of folders your terminal searches for programs). Reopening the terminal fixes most PATH problems; reinstalling fixes most of the rest.
 
+:::exercise Check your tools are installed
+@@file Terminal
+@@lang bash
+@@prompt
+Type the three commands that print the versions of Node.js, npm and Git, one per line, in that order. (Use the short `-v` flag for Node and npm, and `--version` for Git.)
+@@solution
+node -v
+npm -v
+git --version
+@@hint ^\s*node\s+-v\s*$
+Line 1: `node -v`
+@@hint ^\s*npm\s+-v\s*$
+Line 2: `npm -v`
+@@hint ^\s*git\s+--version\s*$
+Line 3: Git uses the long form with two hyphens: `git --version`
+@@explain
+Each command prints a version number if the tool is installed and on your PATH. "command not found" means it is not installed, or your terminal needs reopening.
+:::
+
 ## Set up VS Code like a professional
 
 Press [[Ctrl+Shift+P]] ([[Cmd+Shift+P]] on Mac), type *Open User Settings (JSON)*, and add:
@@ -53,6 +72,34 @@ Press [[Ctrl+Shift+P]] ([[Cmd+Shift+P]] on Mac), type *Open User Settings (JSON)
 ```
 
 Format-on-save means your code always looks consistent, which makes mistakes easier to spot.
+
+:::exercise Write VS Code settings
+@@file settings.json
+@@prompt
+Write a small settings file that turns on format-on-save and sets the tab size to 2. It is JSON: keys in double quotes, a colon, then the value, with a comma between entries.
+
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2
+}
+```
+@@solution
+{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2
+}
+@@hint ^\s*\{
+Start with an opening curly brace `{` on its own line.
+@@hint "editor\.formatOnSave"\s*:\s*true\s*,
+Line 2: `"editor.formatOnSave": true,` with a comma at the end, because another entry follows.
+@@hint "editor\.tabSize"\s*:\s*2\s*$
+Line 3: `"editor.tabSize": 2` with **no** comma, because it is the last entry.
+@@hint ^\s*\}\s*$
+Close with `}` on the last line.
+@@explain
+JSON is strict: double quotes only, commas between entries, no comma after the last one. A single misplaced comma makes the whole file invalid, which is why editors highlight JSON errors in red.
+:::
 
 ## Your first Node.js program
 

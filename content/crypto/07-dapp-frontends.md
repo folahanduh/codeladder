@@ -46,6 +46,42 @@ console.log('Latest block:', await client.getBlockNumber());
 An RPC key in front-end code is visible to everyone. Providers expect this: restrict the key to your domain in their dashboard. Never put a **private key** anywhere near front-end code.
 :::
 
+:::exercise Read a token balance with viem
+@@file balance.ts
+@@prompt
+Using `client`, `token`, `holder`, `erc20Abi` and `formatUnits` from the example above, read `balanceOf(holder)` and print it with 18 decimals. Write it over several lines, one property per line, exactly like this shape:
+
+```ts
+const balance = await client.readContract({
+  address: token,
+  abi: erc20Abi,
+  functionName: 'balanceOf',
+  args: [holder],
+});
+console.log(formatUnits(balance, 18));
+```
+@@solution
+const balance = await client.readContract({
+  address: token,
+  abi: erc20Abi,
+  functionName: 'balanceOf',
+  args: [holder],
+});
+console.log(formatUnits(balance, 18));
+@@hint const\s+balance\s*=\s*await\s+client\.readContract\(\s*\{
+Line 1: `const balance = await client.readContract({`
+@@hint address\s*:\s*token\s*,
+`address: token,`
+@@hint abi\s*:\s*erc20Abi\s*,
+`abi: erc20Abi,`
+@@hint functionName\s*:\s*['"]balanceOf['"]\s*,
+`functionName: 'balanceOf',`
+@@hint args\s*:\s*\[\s*holder\s*\]\s*,
+`args: [holder],` (arguments always go in an array).
+@@hint formatUnits\(\s*balance\s*,\s*18\s*\)
+Last line: `console.log(formatUnits(balance, 18));`
+:::
+
 ## Connecting wallets with wagmi and RainbowKit
 
 wagmi gives React hooks for accounts, reads and writes; RainbowKit adds a polished "Connect wallet" button and modal.
@@ -118,6 +154,25 @@ export function TokenPanel() {
   );
 }
 ```
+
+:::exercise Send a transfer from React
+@@file TokenPanel.tsx
+@@lang ts
+@@prompt
+Write the single `writeContract` call that transfers 1 token (18 decimals) to `to`: address `TOKEN`, abi `erc20Abi`, functionName `'transfer'`, args `[to, parseUnits('1', 18)]`. All on one line.
+@@solution
+writeContract({ address: TOKEN, abi: erc20Abi, functionName: 'transfer', args: [to, parseUnits('1', 18)] });
+@@hint ^\s*writeContract\(\s*\{
+Start `writeContract({`
+@@hint address\s*:\s*TOKEN\s*,\s*abi\s*:\s*erc20Abi\s*,
+then `address: TOKEN, abi: erc20Abi,`
+@@hint functionName\s*:\s*['"]transfer['"]\s*,
+then `functionName: 'transfer',`
+@@hint args\s*:\s*\[\s*to\s*,\s*parseUnits\(\s*['"]1['"]\s*,\s*18\s*\)\s*\]
+then `args: [to, parseUnits('1', 18)]`
+@@hint \}\s*\)\s*;?\s*$
+Close with `});`
+:::
 
 ## Every state a transaction goes through
 

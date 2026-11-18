@@ -43,11 +43,50 @@ Tools: Chrome DevTools **Lighthouse** and **Performance** panels (lab data), and
 - Never lazy-load the LCP image; give it `fetchpriority="high"`.
 - Next.js `<Image>` and services like Cloudinary or Shopify's CDN do most of this automatically.
 
+:::exercise A fast hero image
+@@file hero.html
+@@lang html
+@@run false
+@@prompt
+Write the hero `img` with attributes in this order: `src="/hero.avif"`, `width="1600"`, `height="900"`, `alt="Summer collection on a London street"`, `fetchpriority="high"`.
+@@solution
+<img src="/hero.avif" width="1600" height="900" alt="Summer collection on a London street" fetchpriority="high">
+@@hint <img\s+src=["']/hero\.avif["']
+Start `<img src="/hero.avif"`
+@@hint width=["']1600["']\s+height=["']900["']
+then `width="1600" height="900"` (stops layout shift).
+@@hint alt=["']Summer collection on a London street["']
+then the alt text.
+@@hint fetchpriority=["']high["']\s*/?>\s*$
+finally `fetchpriority="high">` (the main image loads first, never lazily).
+:::
+
 ## Fix 2: fonts
 
 - Use one or two families, and only the weights you need.
 - Self-host or use `next/font`, and set `font-display: swap` so text shows immediately.
 - Preload the main font file.
+
+:::exercise Fonts that never block text
+@@file fonts.css
+@@run false
+@@prompt
+Write an `@font-face` rule: `font-family: 'Brand';`, `src: url('/fonts/brand.woff2') format('woff2');` and `font-display: swap;`
+@@solution
+@font-face {
+  font-family: 'Brand';
+  src: url('/fonts/brand.woff2') format('woff2');
+  font-display: swap;
+}
+@@hint ^\s*@font-face\s*\{
+Line 1: `@font-face {`
+@@hint font-family\s*:\s*['"]Brand['"]
+`font-family: 'Brand';`
+@@hint src\s*:\s*url\(\s*['"]/fonts/brand\.woff2['"]\s*\)\s*format\(\s*['"]woff2['"]\s*\)
+`src: url('/fonts/brand.woff2') format('woff2');`
+@@hint font-display\s*:\s*swap
+`font-display: swap;` shows fallback text immediately, then swaps in the font.
+:::
 
 ## Fix 3: JavaScript
 

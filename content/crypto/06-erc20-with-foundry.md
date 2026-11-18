@@ -32,6 +32,23 @@ forge install OpenZeppelin/openzeppelin-contracts
 echo '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/' > remappings.txt
 ```
 
+:::exercise Create the project
+@@file Terminal
+@@lang bash
+@@prompt
+Three commands: create a Foundry project called `ladder-token`, move into it, and install the OpenZeppelin contracts library.
+@@solution
+forge init ladder-token
+cd ladder-token
+forge install OpenZeppelin/openzeppelin-contracts
+@@hint ^\s*forge\s+init\s+ladder-token\s*$
+Line 1: `forge init ladder-token`
+@@hint ^\s*cd\s+ladder-token\s*$
+Line 2: `cd ladder-token`
+@@hint ^\s*forge\s+install\s+OpenZeppelin/openzeppelin-contracts\s*$
+Line 3: `forge install OpenZeppelin/openzeppelin-contracts` (GitHub owner/repo).
+:::
+
 ## The contract
 
 Never write ERC-20 logic from scratch for real use. Inherit OpenZeppelin's audited implementation and add only your rules:
@@ -59,6 +76,28 @@ contract LadderToken is ERC20, Ownable {
     }
 }
 ```
+
+:::exercise Write the token contract
+@@file LadderToken.sol
+@@prompt
+Write the core of the token (imports and pragma omitted): a contract `LadderToken` that inherits `ERC20` and `Ownable`, with a constructor taking `address initialOwner` that sets the name `"Ladder"`, symbol `"LDR"`, owner `initialOwner`, and mints `100_000_000 ether` to `initialOwner`.
+@@solution
+contract LadderToken is ERC20, Ownable {
+    constructor(address initialOwner) ERC20("Ladder", "LDR") Ownable(initialOwner) {
+        _mint(initialOwner, 100_000_000 ether);
+    }
+}
+@@hint ^\s*contract\s+LadderToken\s+is\s+ERC20\s*,\s*Ownable\s*\{
+Line 1: `contract LadderToken is ERC20, Ownable {`
+@@hint constructor\(\s*address\s+initialOwner\s*\)
+Line 2 starts `constructor(address initialOwner)`
+@@hint ERC20\(\s*["']Ladder["']\s*,\s*["']LDR["']\s*\)\s*Ownable\(\s*initialOwner\s*\)\s*\{
+then call both parent constructors: `ERC20("Ladder", "LDR") Ownable(initialOwner) {`
+@@hint _mint\(\s*initialOwner\s*,\s*100_000_000\s+ether\s*\)\s*;
+Line 3: `_mint(initialOwner, 100_000_000 ether);`
+@@hint \}\s*\n\s*\}\s*$
+Close the constructor and the contract: two `}`.
+:::
 
 ## Test it
 
@@ -171,6 +210,23 @@ Find the contract address in the output, open it on sepolia.etherscan.io, and im
 
 :::warn Testnet first, real money much later
 Deploying to mainnet costs real money and is permanent. Many tokens also raise legal questions (see the Tokenomics track's launch lesson). Use testnets until you have written tests, run Slither, and understand every line.
+:::
+
+:::exercise Deploy and verify
+@@file Terminal
+@@lang bash
+@@prompt
+Write the single command that runs `script/DeployLadder.s.sol` against `$SEPOLIA_RPC_URL`, signs with the keystore account `dev`, broadcasts the transaction, and verifies the contract. Flags in this order: `--rpc-url`, `--account`, `--broadcast`, `--verify`.
+@@solution
+forge script script/DeployLadder.s.sol --rpc-url $SEPOLIA_RPC_URL --account dev --broadcast --verify
+@@hint ^\s*forge\s+script\s+script/DeployLadder\.s\.sol
+Start with `forge script script/DeployLadder.s.sol`
+@@hint --rpc-url\s+\$SEPOLIA_RPC_URL
+then `--rpc-url $SEPOLIA_RPC_URL`
+@@hint --account\s+dev
+then `--account dev`
+@@hint --broadcast\s+--verify\s*$
+finish with `--broadcast --verify`
 :::
 
 ## Quiz

@@ -49,6 +49,25 @@ contract StudioPass is ERC721, Ownable {
 
 Each token's `tokenURI` points to **metadata** JSON (name, description, image). The image is usually on IPFS or Arweave, not on-chain, because storage on-chain is very expensive. If metadata lives on a normal web server, the NFT's appearance depends on that server staying up.
 
+:::exercise Mint an NFT
+@@file StudioPass.sol
+@@prompt
+Write the `mint` function: `external onlyOwner`, takes `address to`, `returns (uint256 id)`, sets `id = _nextId++;` and calls `_safeMint(to, id);`.
+@@solution
+function mint(address to) external onlyOwner returns (uint256 id) {
+    id = _nextId++;
+    _safeMint(to, id);
+}
+@@hint function\s+mint\s*\(\s*address\s+to\s*\)
+Line 1 starts `function mint(address to)`
+@@hint external\s+onlyOwner\s+returns\s*\(\s*uint256\s+id\s*\)\s*\{
+then `external onlyOwner returns (uint256 id) {`
+@@hint id\s*=\s*_nextId\+\+\s*;
+Line 2: `id = _nextId++;` (use the current value, then add one).
+@@hint _safeMint\(\s*to\s*,\s*id\s*\)\s*;
+Line 3: `_safeMint(to, id);`
+:::
+
 ## Approvals: powerful and dangerous
 
 ERC-20's `approve` lets a contract spend your tokens. Many apps ask for an **unlimited** approval so you never have to approve again. Convenient, but if that contract is later exploited, or was malicious from the start, it can drain every approved token.
@@ -58,6 +77,21 @@ ERC-20's `approve` lets a contract spend your tokens. Many apps ask for an **unl
 
 :::warn Signatures can move money too
 "Just sign this message, it is free" can be a `permit` signature that approves a transfer of your tokens. EIP-712 makes signatures readable in wallets: read them. Scam sites rely on people signing without reading.
+:::
+
+:::exercise Approve exactly what you need
+@@file Approve.sol
+@@prompt
+Two Solidity lines: approve `address(dex)` to spend `100 ether` of `token`, then read the remaining allowance from `address(this)` to `address(dex)` into a `uint256 left`.
+@@solution
+token.approve(address(dex), 100 ether);
+uint256 left = token.allowance(address(this), address(dex));
+@@hint token\.approve\(\s*address\(\s*dex\s*\)\s*,\s*100\s+ether\s*\)\s*;
+Line 1: `token.approve(address(dex), 100 ether);`
+@@hint uint256\s+left\s*=\s*token\.allowance\(
+Line 2 starts `uint256 left = token.allowance(`
+@@hint allowance\(\s*address\(\s*this\s*\)\s*,\s*address\(\s*dex\s*\)\s*\)\s*;
+Arguments: owner first, then spender: `address(this), address(dex)`
 :::
 
 ## ERC-4626 vaults

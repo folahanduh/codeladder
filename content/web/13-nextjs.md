@@ -58,6 +58,24 @@ export default async function ProductsPage() {
 
 The database code and credentials never reach the browser.
 
+:::exercise A server component that loads data
+@@file app/products/page.tsx
+@@lang ts
+@@prompt
+Write a default-exported **async** page component `ProductsPage` that awaits `getProducts()` and returns an `h1` showing how many products there are: `{products.length} products`.
+@@solution
+export default async function ProductsPage() {
+  const products = await getProducts();
+  return <h1>{products.length} products</h1>;
+}
+@@hint export\s+default\s+async\s+function\s+ProductsPage\s*\(\s*\)\s*\{
+Line 1: `export default async function ProductsPage() {`
+@@hint const\s+products\s*=\s*await\s+getProducts\(\s*\)
+Line 2: `const products = await getProducts();`
+@@hint return\s+<h1>\s*\{\s*products\.length\s*\}\s*products\s*</h1>
+Line 3: `return <h1>{products.length} products</h1>;`
+:::
+
 ## Client components for interactivity
 
 Anything that uses state, effects or browser events needs `'use client'` at the top of its file:
@@ -73,6 +91,39 @@ export function AddToBag({ productId }: { productId: string }) {
 ```
 
 **Rule of thumb:** keep pages and data loading on the server; push `'use client'` down to the small interactive leaves (buttons, forms, carousels). Less JavaScript ships to the browser, so pages are faster.
+
+:::exercise A client component
+@@file AddToBag.tsx
+@@lang ts
+@@prompt
+Write a client component (it needs state):
+
+1. `'use client';`
+2. `import { useState } from 'react';`
+3. `export function AddToBag() {`
+4. `const [added, setAdded] = useState(false);`
+5. Return a button whose click sets `added` to `true` and whose text is `{added ? 'Added' : 'Add to bag'}`.
+6. `}`
+@@solution
+'use client';
+import { useState } from 'react';
+export function AddToBag() {
+  const [added, setAdded] = useState(false);
+  return <button onClick={() => setAdded(true)}>{added ? 'Added' : 'Add to bag'}</button>;
+}
+@@hint ^\s*['"]use client['"]
+Line 1 is the directive, in quotes: `'use client';`
+@@hint import\s*\{\s*useState\s*\}\s*from\s*['"]react['"]
+Line 2: `import { useState } from 'react';`
+@@hint export\s+function\s+AddToBag\s*\(\s*\)\s*\{
+Line 3: `export function AddToBag() {`
+@@hint const\s*\[\s*added\s*,\s*setAdded\s*\]\s*=\s*useState\(\s*false\s*\)
+Line 4: `const [added, setAdded] = useState(false);`
+@@hint onClick=\{\s*\(\s*\)\s*=>\s*setAdded\(\s*true\s*\)\s*\}
+The button's handler: `onClick={() => setAdded(true)}`
+@@hint \{\s*added\s*\?\s*['"]Added['"]\s*:\s*['"]Add to bag['"]\s*\}
+The text uses a ternary: `{added ? 'Added' : 'Add to bag'}`
+:::
 
 ## Dynamic routes
 

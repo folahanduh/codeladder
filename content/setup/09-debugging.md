@@ -39,6 +39,24 @@ So on line 14 of cart.js, the thing before `.price` is undefined. Maybe an item 
 | `Failed to fetch` / CORS error | Network request blocked or server unreachable |
 | `404` in the Network tab | Wrong file path or URL |
 
+:::exercise Read the error, fix the typo
+@@file greeting.js
+@@prompt
+Press **Run it** first. This code throws `ReferenceError: greting is not defined`. Read the error, find the misspelt name, and fix it so it prints the greeting.
+@@starter
+const greeting = 'Hello';
+console.log(greting);
+@@solution
+const greeting = 'Hello';
+console.log(greeting);
+@@hint const\s+greeting\s*=\s*['"]Hello['"]
+Keep line 1 as it is: `const greeting = 'Hello';`
+@@hint console\.log\(\s*greeting\s*\)
+The error names the problem: `greting` is missing an "e". It must match the variable: `greeting`.
+@@explain
+A `ReferenceError` means you used a name the program has never seen. Nine times out of ten it is a typo. The error message told you exactly which name, which is why you always read it first.
+:::
+
 ## Step 2: look inside with console and breakpoints
 
 Label your logs so you know what you are looking at:
@@ -50,6 +68,34 @@ console.trace('how did we get here?');
 ```
 
 Better still, **pause the code**. Add `debugger;` on a line, open DevTools, and reload. Execution stops there and you can hover over any variable, step line by line ([[F10]] step over, [[F11]] step into) and watch values change. You can also click a line number in the DevTools **Sources** panel to set a breakpoint without editing code.
+
+:::exercise Fix the off-by-one bug
+@@file total.js
+@@prompt
+This code should print a total of **70** but prints `NaN` ("Not a Number"). Press **Run it**, then fix the bug. (Ask yourself: how many items are in `prices`, and what is `prices[3]`?)
+
+When it works, change the last line to the labelled log `console.log({ total });`.
+@@starter
+const prices = [20, 35, 15];
+let total = 0;
+for (let i = 0; i <= prices.length; i++) {
+  total = total + prices[i];
+}
+console.log(total);
+@@solution
+const prices = [20, 35, 15];
+let total = 0;
+for (let i = 0; i < prices.length; i++) {
+  total = total + prices[i];
+}
+console.log({ total });
+@@hint i\s*<\s*prices\.length
+The loop runs once too often. With `<=`, `i` reaches 3, but the last item is `prices[2]`. Use `<` instead of `<=`.
+@@hint console\.log\(\s*\{\s*total\s*\}\s*\)
+Change the last line to `console.log({ total });` so the output shows the variable's name as well as its value.
+@@explain
+An array of 3 items has positions 0, 1 and 2. With `<=` the loop also read `prices[3]`, which is `undefined`, and `70 + undefined` is `NaN`. This "off by one" mistake is one of the most common bugs in all of programming.
+:::
 
 ## Step 3: check the Network tab
 

@@ -40,6 +40,26 @@ test: cover empty cart edge case
 chore: bump vite to 6.0.5
 ```
 
+:::exercise Ship a fix the professional way
+@@file Terminal
+@@lang bash
+@@prompt
+Type the four commands to: create a branch `fix/vat-rounding`, commit with the conventional message `fix: round VAT to the nearest penny`, push the branch to `origin` (setting it as upstream), and open a pull request that fills in its title and body from your commits.
+@@solution
+git switch -c fix/vat-rounding
+git commit -m "fix: round VAT to the nearest penny"
+git push -u origin fix/vat-rounding
+gh pr create --fill
+@@hint ^\s*git\s+switch\s+-c\s+fix/vat-rounding\s*$
+Line 1: `git switch -c fix/vat-rounding`
+@@hint git\s+commit\s+-m\s+["']fix: round VAT to the nearest penny["']
+Line 2: the message starts with the type `fix:` then a space.
+@@hint ^\s*git\s+push\s+-u\s+origin\s+fix/vat-rounding\s*$
+Line 3: `git push -u origin fix/vat-rounding` (`-u` links the local branch to the remote one).
+@@hint ^\s*gh\s+pr\s+create\s+--fill\s*$
+Line 4: `gh pr create --fill`
+:::
+
 ## Code review: what reviewers look for
 
 - **Correctness**: does it do what it claims? What about empty, huge or invalid inputs?
@@ -90,6 +110,27 @@ STRIPE_SECRET_KEY=sk_test_...
 - In production, set real values in your host's dashboard (Vercel, Netlify, Railway) or a secrets manager.
 - In GitHub Actions, use **repository secrets** (`${{ secrets.STRIPE_SECRET_KEY }}`).
 - For smart contracts, never put a private key with real funds in a `.env` file. Use Foundry's encrypted keystore (`cast wallet import`) or a hardware wallet.
+
+:::exercise Write a .env.example
+@@file .env.example
+@@lang bash
+@@prompt
+Write a `.env.example` with two variables, using placeholder values only:
+
+- `DATABASE_URL` set to `postgres://localhost:5432/shop`
+- `STRIPE_SECRET_KEY` set to `sk_test_replace_me`
+
+No spaces around the `=` sign.
+@@solution
+DATABASE_URL=postgres://localhost:5432/shop
+STRIPE_SECRET_KEY=sk_test_replace_me
+@@hint ^DATABASE_URL=postgres://localhost:5432/shop\s*$
+Line 1: `DATABASE_URL=postgres://localhost:5432/shop`
+@@hint ^STRIPE_SECRET_KEY=sk_test_replace_me\s*$
+Line 2: `STRIPE_SECRET_KEY=sk_test_replace_me`
+@@explain
+This file is committed so teammates know which variables to set. The real `.env`, with real secrets, stays in `.gitignore`.
+:::
 
 ## Documentation that pays off
 

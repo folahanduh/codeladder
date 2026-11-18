@@ -37,6 +37,34 @@ function withdraw() external nonReentrant {
 
 Follow **checks-effects-interactions** everywhere and add OpenZeppelin's `ReentrancyGuard` (`nonReentrant`) to functions that move value. Watch for **read-only reentrancy** too: other protocols reading your state mid-update.
 
+:::exercise Fix the reentrancy bug
+@@file Vault.sol
+@@prompt
+This `withdraw` is vulnerable: it sends ETH **before** zeroing the balance. Fix it: add the `nonReentrant` modifier after `external`, and move the line that zeroes the balance so it runs **before** the external call (checks, effects, interactions).
+@@starter
+function withdraw() external {
+    uint256 amount = balances[msg.sender];
+    (bool ok, ) = msg.sender.call{value: amount}("");
+    require(ok);
+    balances[msg.sender] = 0;
+}
+@@solution
+function withdraw() external nonReentrant {
+    uint256 amount = balances[msg.sender];
+    balances[msg.sender] = 0;
+    (bool ok, ) = msg.sender.call{value: amount}("");
+    require(ok);
+}
+@@hint external\s+nonReentrant\s*\{
+Add the guard to line 1: `function withdraw() external nonReentrant {`
+@@hint balances\[\s*msg\.sender\s*\]\s*=\s*0\s*;[\s\S]*msg\.sender\.call
+Effects before interactions: `balances[msg.sender] = 0;` must come **before** the `.call{value: amount}` line.
+@@hint require\(\s*ok\s*\)\s*;\s*\n\s*\}\s*$
+After the call, `require(ok);` is the last line before the closing brace.
+@@explain
+Now, if the receiver re-enters `withdraw`, its balance is already 0, so there is nothing more to take, and `nonReentrant` blocks the second call anyway. Two independent defences: that is defence in depth.
+:::
+
 ## 2. Access control
 
 Missing `onlyOwner` on a mint or upgrade function. An `initialize` function anyone can call first. Using `tx.origin` (the original signer) instead of `msg.sender` for auth, which lets a malicious contract act on a user's behalf.
@@ -63,6 +91,22 @@ uint256 fee = amount * 3 / 1000;   // better: multiply before dividing
 
 - Decide who rounding should favour (almost always the protocol, never the user who can repeat it).
 - Be careful with `unchecked` blocks and with tokens that have different decimals (USDC has 6, most have 18).
+
+:::exercise Fix the precision bug
+@@file Fees.sol
+@@prompt
+This fee calculation divides first, so small amounts round down to a fee of zero. Rewrite it to multiply before dividing.
+@@starter
+uint256 fee = amount / 1000 * 3;
+@@solution
+uint256 fee = amount * 3 / 1000;
+@@hint uint256\s+fee\s*=\s*amount\s*\*\s*3
+Multiply first: `amount * 3`
+@@hint \*\s*3\s*\/\s*1000\s*;
+then divide last: `/ 1000;`
+@@explain
+With `amount = 999`, the old version computes `999 / 1000 = 0`, then `0 * 3 = 0`: no fee at all, repeatable forever. The fixed version gives `2997 / 1000 = 2`.
+:::
 
 ## 5. Front-running and MEV
 

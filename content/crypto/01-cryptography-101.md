@@ -61,9 +61,67 @@ const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, cipherte
 console.log('Decrypted:', dec.decode(plain));
 ```
 
+:::exercise Encrypt and decrypt with AES-GCM
+@@file aes.js
+@@prompt
+Using the example above as your guide, write five lines:
+
+1. `const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);`
+2. `const iv = crypto.getRandomValues(new Uint8Array(12));`
+3. `const secret = new TextEncoder().encode('Launch date: 14 March');`
+4. `const box = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, secret);`
+5. `console.log(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, box)));`
+@@solution
+const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+const iv = crypto.getRandomValues(new Uint8Array(12));
+const secret = new TextEncoder().encode('Launch date: 14 March');
+const box = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, secret);
+console.log(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, box)));
+@@hint crypto\.subtle\.generateKey\(\s*\{\s*name\s*:\s*['"]AES-GCM['"]\s*,\s*length\s*:\s*256\s*\}
+Line 1 calls `crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, ...)`
+@@hint \[\s*['"]encrypt['"]\s*,\s*['"]decrypt['"]\s*\]
+The key's allowed uses go in an array: `['encrypt', 'decrypt']`
+@@hint const\s+iv\s*=\s*crypto\.getRandomValues\(\s*new\s+Uint8Array\(\s*12\s*\)\s*\)
+Line 2: a fresh 12-byte nonce: `const iv = crypto.getRandomValues(new Uint8Array(12));`
+@@hint new\s+TextEncoder\(\s*\)\.encode\(\s*['"]Launch date: 14 March['"]\s*\)
+Line 3 turns text into bytes with `new TextEncoder().encode(...)`.
+@@hint const\s+box\s*=\s*await\s+crypto\.subtle\.encrypt\(\s*\{\s*name\s*:\s*['"]AES-GCM['"]\s*,\s*iv\s*\}\s*,\s*key\s*,\s*secret\s*\)
+Line 4: `const box = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, secret);`
+@@hint crypto\.subtle\.decrypt\(\s*\{\s*name\s*:\s*['"]AES-GCM['"]\s*,\s*iv\s*\}\s*,\s*key\s*,\s*box\s*\)
+Line 5 decrypts with the same key and iv: `crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, box)`, wrapped in `new TextDecoder().decode(await ...)`.
+@@explain
+`box` is unreadable bytes. Only the same key and nonce turn it back into the message. Change one byte of `box` and decryption throws an error instead: GCM mode detects tampering, giving you integrity as well as confidentiality.
+:::
+
 ## Randomness matters
 
 Keys must be unpredictable. Use `crypto.getRandomValues()` or `crypto.randomUUID()`. **Never** use `Math.random()` for anything security-related; it is predictable.
+
+:::exercise Generate secure random values
+@@file random.js
+@@prompt
+Make a 16-byte random key and a random ID the safe way. Three lines:
+
+1. `const key = crypto.getRandomValues(new Uint8Array(16));`
+2. `console.log(Array.from(key));`
+3. `console.log(crypto.randomUUID());`
+
+Run it a few times: every result is different and unpredictable.
+@@solution
+const key = crypto.getRandomValues(new Uint8Array(16));
+console.log(Array.from(key));
+console.log(crypto.randomUUID());
+@@hint const\s+key\s*=\s*crypto\.getRandomValues\(
+Line 1 starts `const key = crypto.getRandomValues(`
+@@hint new\s+Uint8Array\(\s*16\s*\)
+Inside: `new Uint8Array(16)`: an empty box of 16 bytes for it to fill.
+@@hint console\.log\(\s*Array\.from\(\s*key\s*\)\s*\)
+Line 2: `console.log(Array.from(key));`
+@@hint crypto\.randomUUID\(\s*\)
+Line 3: `console.log(crypto.randomUUID());` (UUID in capitals).
+@@explain
+16 bytes is 128 bits of randomness, the size of an AES-128 key. `Math.random()` would look random but is predictable; these functions use the operating system's cryptographically secure generator.
+:::
 
 ## Kerckhoffs's principle
 

@@ -39,6 +39,29 @@ function testFuzz_WithdrawNeverExceedsDeposit(uint96 deposit, uint96 withdrawAmo
 
 Prefer `bound` over `vm.assume` when possible: `assume` throws inputs away, `bound` maps them into range.
 
+:::exercise Write a fuzz test
+@@file LadderToken.t.sol
+@@prompt
+Write `testFuzz_Transfer(uint256 amount)`: bound `amount` between 0 and the owner's balance, prank as `owner`, transfer `amount` to `alice`, and assert alice's balance equals `amount`.
+@@solution
+function testFuzz_Transfer(uint256 amount) public {
+    amount = bound(amount, 0, token.balanceOf(owner));
+    vm.prank(owner);
+    token.transfer(alice, amount);
+    assertEq(token.balanceOf(alice), amount);
+}
+@@hint function\s+testFuzz_Transfer\s*\(\s*uint256\s+amount\s*\)\s*public\s*\{
+Line 1: `function testFuzz_Transfer(uint256 amount) public {` (the parameter makes it a fuzz test).
+@@hint amount\s*=\s*bound\(\s*amount\s*,\s*0\s*,\s*token\.balanceOf\(\s*owner\s*\)\s*\)\s*;
+Line 2: `amount = bound(amount, 0, token.balanceOf(owner));`
+@@hint vm\.prank\(\s*owner\s*\)\s*;
+Line 3: `vm.prank(owner);`
+@@hint token\.transfer\(\s*alice\s*,\s*amount\s*\)\s*;
+Line 4: `token.transfer(alice, amount);`
+@@hint assertEq\(\s*token\.balanceOf\(\s*alice\s*\)\s*,\s*amount\s*\)\s*;
+Line 5: `assertEq(token.balanceOf(alice), amount);`
+:::
+
 ## Invariant testing
 
 An **invariant** is something that must always be true, whatever anyone does. For example:
@@ -123,6 +146,23 @@ slither .
 ```
 
 Slither flags reentrancy, unprotected functions, shadowing, dangerous calls and dozens more patterns in seconds. Treat each finding as a question: fix it, or write down why it is safe. Aderyn is another fast analyser worth running.
+
+:::exercise Run the safety checks
+@@file Terminal
+@@lang bash
+@@prompt
+Three commands: measure test coverage, run the tests with a gas report, and run Slither on the current folder.
+@@solution
+forge coverage
+forge test --gas-report
+slither .
+@@hint ^\s*forge\s+coverage\s*$
+Line 1: `forge coverage`
+@@hint ^\s*forge\s+test\s+--gas-report\s*$
+Line 2: `forge test --gas-report`
+@@hint ^\s*slither\s+\.\s*$
+Line 3: `slither .` (the dot means this folder).
+:::
 
 ## How auditors think
 

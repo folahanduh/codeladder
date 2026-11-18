@@ -53,7 +53,7 @@
 
   // ---------------------------------------------------------------- storage
   const KEY = 'code-ladder-v1';
-  const DEFAULTS = () => ({ done: {}, quiz: {}, tools: {}, projects: {}, habits: {}, last: null, days: [], os: null, theme: 'system', tipSeen: 0 });
+  const DEFAULTS = () => ({ done: {}, quiz: {}, ex: {}, tools: {}, projects: {}, habits: {}, last: null, days: [], os: null, theme: 'system', tipSeen: 0 });
   const store = {
     data: (() => {
       try {
@@ -79,6 +79,7 @@
     total += Object.values(d.quiz).filter((v) => v === 1).length * 20;
     total += Object.values(d.projects).filter((v) => v === 'done').length * 150;
     total += Object.values(d.tools).filter(Boolean).length * 5;
+    total += Object.values(d.ex || {}).reduce((n, v) => n + (v === 'solved' ? 15 : v === 'assisted' ? 5 : 0), 0);
     return total;
   }
   function rank(points = xp()) {
@@ -97,6 +98,7 @@
     return n;
   }
   const isDone = (id) => Boolean(store.data.done[id]);
+  const exDone = (l) => l.exercises.filter((_, i) => (store.data.ex || {})[`${l.id}#${i}`]).length;
   function pct(track, level) {
     const list = lessonsIn(track, level);
     return list.length ? list.filter((l) => isDone(l.id)).length / list.length : 0;
@@ -231,7 +233,7 @@
           <p class="eyebrow">Your rank</p>
           <p class="rank-big">${r.name}</p>
           <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(progressToNext * 100)}" aria-label="Progress to next rank"><span style="width:${Math.round(progressToNext * 100)}%"></span></div>
-          <p class="muted small">${r.next ? `${(r.next[0] - xp()).toLocaleString()} XP to <strong>${r.next[1]}</strong>. Lessons give 40 XP, perfect quizzes 20, shipped projects 150.` : 'Top rank reached. Now teach someone else.'}</p>
+          <p class="muted small">${r.next ? `${(r.next[0] - xp()).toLocaleString()} XP to <strong>${r.next[1]}</strong>. Lessons give 40 XP, coding exercises 15, perfect quizzes 20, shipped projects 150.` : 'Top rank reached. Now teach someone else.'}</p>
           <p class="muted small">Active days in a row: <strong>${streak()}</strong></p>
         </div>
         <div class="card" style="display:grid;gap:10px;align-content:start">
@@ -254,7 +256,7 @@
         <h2 class="section-title" id="how">How to use Code Ladder</h2>
         <ol class="steps">
           <li><div><strong>Install the toolkit.</strong> <span class="muted">Work through <a href="#toolkit">Install everything</a> for your operating system. Tick items off as you go.</span></div></li>
-          <li><div><strong>Do one lesson a day.</strong> <span class="muted">Read it, type the code yourself, then pass the quiz. Passing marks it complete.</span></div></li>
+          <li><div><strong>Do one lesson a day.</strong> <span class="muted">Read it and solve the coding exercises in the built-in editor. Get one wrong five times and the answer appears as faded ghost text for you to type over. Then pass the quiz to complete the lesson.</span></div></li>
           <li><div><strong>Build the level's projects.</strong> <span class="muted">Lessons teach; <a href="#projects">projects</a> make it stick. Do not move up a level without building something.</span></div></li>
           <li><div><strong>Keep your progress safe.</strong> <span class="muted">Progress lives in this browser. Copy a backup code from <a href="#progress">My progress</a> now and then.</span></div></li>
         </ol>
@@ -291,7 +293,7 @@
               return `<li><a class="lesson-item${isDone(l.id) ? ' done' : ''}" href="#lesson-${l.id}">
                 <span class="lesson-num" aria-hidden="true">${isDone(l.id) ? '&#10003;' : num}</span>
                 <span style="min-width:0"><span class="lesson-title">${esc(l.title)}</span><span class="lesson-sum" style="display:block">${esc(l.summary)}</span></span>
-                <span class="lesson-min">${l.minutes} min</span>
+                <span class="lesson-min">${l.minutes} min${l.exercises.length ? `<br>${exDone(l)}/${l.exercises.length} exercises` : ''}</span>
               </a></li>`;
             }).join('')}
           </ol>
@@ -321,7 +323,7 @@
     return `
     <article class="page">
       <header class="lesson-head">
-        <nav class="crumbs" aria-label="Breadcrumb"><a href="#track-${t.id}">${t.name}</a><span aria-hidden="true">/</span><span class="lv lv-${l.level}">${l.level}</span><span aria-hidden="true">/</span><span>${l.minutes} min</span>${isDone(l.id) ? '<span class="chip chip-good">Completed</span>' : ''}</nav>
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="#track-${t.id}">${t.name}</a><span aria-hidden="true">/</span><span class="lv lv-${l.level}">${l.level}</span><span aria-hidden="true">/</span><span>${l.minutes} min</span>${l.exercises.length ? `<span aria-hidden="true">/</span><a href="#" class="ex-jump">${l.exercises.length} coding exercise${l.exercises.length > 1 ? 's' : ''}</a>` : ''}${isDone(l.id) ? '<span class="chip chip-good">Completed</span>' : ''}</nav>
         <h1>${esc(l.title)}</h1>
         <p class="summary">${esc(l.summary)}</p>
       </header>
@@ -358,10 +360,37 @@
     const l = lessonById(id);
     if (!l) return;
     $('#toggleDone')?.addEventListener('click', () => {
+      const btn = $('#toggleDone');
       if (isDone(l.id)) delete store.data.done[l.id];
       else { store.data.done[l.id] = Date.now(); store.markActive(); toast('Lesson complete: +40 XP'); }
       store.save();
-      route();
+      btn.textContent = isDone(l.id) ? 'Mark as not done' : 'Mark lesson complete';
+      btn.classList.toggle('btn-primary', !isDone(l.id));
+    });
+    $('.ex-jump')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      $('.exercise')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    // coding exercises
+    const EX = window.CL_EXERCISES;
+    $$('.exercise[data-ex]').forEach((host) => {
+      const i = Number(host.dataset.ex);
+      const ex = l.exercises[i];
+      const key = `${l.id}#${i}`;
+      if (!EX || !ex) return;
+      EX.mount(host, ex, {
+        id: `${l.id}-${i}`,
+        n: i + 1,
+        total: l.exercises.length,
+        getState: () => (store.data.ex || {})[key],
+        onSolved(kind) {
+          const cur = store.data.ex[key];
+          if (kind === 'solved' && cur !== 'solved') { store.data.ex[key] = 'solved'; toast(cur === 'assisted' ? 'Solved from memory: +10 XP' : 'Exercise solved: +15 XP'); }
+          else if (kind === 'assisted' && !cur) { store.data.ex[key] = 'assisted'; toast('Typed it out: +5 XP'); }
+          store.markActive();
+          store.save();
+        },
+      });
     });
     const form = $('#quiz');
     if (!form) return;
@@ -627,6 +656,7 @@
         <div class="stat"><b>${xp().toLocaleString()}</b><span>XP</span></div>
         <div class="stat"><b>${Object.keys(d.done).length}/${LESSONS.length}</b><span>Lessons complete</span></div>
         <div class="stat"><b>${quizPassed}</b><span>Quizzes passed</span></div>
+        <div class="stat"><b>${Object.values(d.ex || {}).filter((v) => v === 'solved').length}/${LESSONS.reduce((n, l) => n + l.exercises.length, 0)}</b><span>Exercises solved on your own</span></div>
         <div class="stat"><b>${shipped}/${D.projects.length}</b><span>Projects shipped</span></div>
         <div class="stat"><b>${tools}/${countTools()}</b><span>Tools installed</span></div>
         <div class="stat"><b>${d.days.length}</b><span>Active days</span></div>
@@ -817,6 +847,7 @@
     const sameView = h === lastHash;
     lastHash = h;
     if (TOOLS.beforeLeave) TOOLS.beforeLeave();
+    if (window.CL_EXERCISES) window.CL_EXERCISES.cleanup();
     if (h.startsWith('track-')) {
       main.innerHTML = viewTrack(h.slice(6));
     } else if (h.startsWith('lesson-')) {

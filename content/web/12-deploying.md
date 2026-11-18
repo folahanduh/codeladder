@@ -32,6 +32,23 @@ vercel --prod   # deploy to production
 
 Build settings for a Vite project: build command `npm run build`, output folder `dist`.
 
+:::exercise Deploy with the Vercel CLI
+@@file Terminal
+@@lang bash
+@@prompt
+Three commands: install the Vercel CLI globally, make a preview deployment, then deploy to production.
+@@solution
+npm install -g vercel
+vercel
+vercel --prod
+@@hint ^\s*npm\s+install\s+-g\s+vercel\s*$
+Line 1: `npm install -g vercel` (`-g` = global).
+@@hint ^\s*vercel\s*$
+Line 2: just `vercel` makes a preview.
+@@hint ^\s*vercel\s+--prod\s*$
+Line 3: `vercel --prod`
+:::
+
 ## Custom domains
 
 1. Buy a domain from a registrar (Cloudflare, Namecheap, Porkbun, Google-partner registrars).
@@ -62,6 +79,28 @@ Secrets (API keys, database URLs) are set in the host's dashboard, never committ
 
 :::pro Preview deployments sell
 For client work, send a preview URL rather than screenshots. Clients click around on their own phones, give better feedback, and see you as a professional. Always deploy a preview of every change before it goes to production.
+:::
+
+:::exercise SEO and sharing tags
+@@file head.html
+@@lang html
+@@run false
+@@prompt
+Write three lines for a page's `head`:
+
+1. A `title`: `Amara Studio | Handmade jewellery`
+2. A meta description: `name="description"` and `content="Handmade brass jewellery from London."`
+3. A share image: `property="og:image"` and `content="https://amarastudio.com/og.jpg"`
+@@solution
+<title>Amara Studio | Handmade jewellery</title>
+<meta name="description" content="Handmade brass jewellery from London.">
+<meta property="og:image" content="https://amarastudio.com/og.jpg">
+@@hint <title>\s*Amara Studio \| Handmade jewellery\s*</title>
+Line 1: `<title>Amara Studio | Handmade jewellery</title>`
+@@hint <meta\s+name=["']description["']\s+content=["']Handmade brass jewellery from London\.["']
+Line 2: `<meta name="description" content="Handmade brass jewellery from London.">`
+@@hint <meta\s+property=["']og:image["']\s+content=["']https://amarastudio\.com/og\.jpg["']
+Line 3: `<meta property="og:image" content="https://amarastudio.com/og.jpg">`
 :::
 
 ## Quiz

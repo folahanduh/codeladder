@@ -86,6 +86,24 @@ console.log('carol:999 included?', await verify('carol:999', proof, root)); // f
 
 In Solidity, OpenZeppelin's `MerkleProof.verify(proof, root, leaf)` does the checking. Off-chain, `@openzeppelin/merkle-tree` builds compatible trees. Hash leaves twice (or with a distinct prefix) to prevent a known second-preimage trick where an inner node is passed off as a leaf.
 
+:::exercise Verify a Merkle proof on-chain
+@@file Airdrop.sol
+@@prompt
+Two lines inside a `claim(uint256 amount, bytes32[] calldata proof)` function:
+
+1. Build the leaf the way OpenZeppelin's Merkle tree library does, hashing twice: `bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(msg.sender, amount))));`
+2. Require that `MerkleProof.verify(proof, root, leaf)` is true, with the message `"Not eligible"`.
+@@solution
+bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(msg.sender, amount))));
+require(MerkleProof.verify(proof, root, leaf), "Not eligible");
+@@hint bytes32\s+leaf\s*=\s*keccak256\(\s*bytes\.concat\(
+Line 1 starts `bytes32 leaf = keccak256(bytes.concat(`
+@@hint keccak256\(\s*abi\.encode\(\s*msg\.sender\s*,\s*amount\s*\)\s*\)\s*\)\s*\)\s*;
+then the inner hash `keccak256(abi.encode(msg.sender, amount))` and three closing brackets plus a semicolon.
+@@hint require\(\s*MerkleProof\.verify\(\s*proof\s*,\s*root\s*,\s*leaf\s*\)\s*,\s*["']Not eligible["']\s*\)\s*;
+Line 2: `require(MerkleProof.verify(proof, root, leaf), "Not eligible");`
+:::
+
 ## Zero-knowledge proofs
 
 A **zero-knowledge proof** convinces a verifier that a statement is true without revealing why:

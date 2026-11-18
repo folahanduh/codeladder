@@ -36,6 +36,29 @@ document.querySelector('ul').append(li);     // put it on the page
 `textContent` treats everything as plain text. `innerHTML` parses HTML. **Never** put user input into `innerHTML`: someone could type a `<script>` or an `<img onerror=...>` and run code on your page. This attack is called XSS (cross-site scripting).
 :::
 
+:::exercise Change text on the page
+@@file script.js
+@@html
+<h1 id="title">Spring collection</h1>
+<button id="buy">Add to bag</button>
+@@prompt
+The page below has `<h1 id="title">Spring collection</h1>`. Write two lines:
+
+1. A constant `title` that finds it with `document.querySelector('#title')`.
+2. Change its text to `'Summer drop is live'` using `textContent`.
+
+Press **Run it** to see the heading change.
+@@solution
+const title = document.querySelector('#title');
+title.textContent = 'Summer drop is live';
+@@hint const\s+title\s*=\s*document\.querySelector\(
+Line 1: `const title = document.querySelector(`
+@@hint querySelector\(\s*['"]#title['"]\s*\)
+The selector is `'#title'`: a hash because it is an id.
+@@hint title\.textContent\s*=\s*['"]Summer drop is live['"]
+Line 2: `title.textContent = 'Summer drop is live';`
+:::
+
 ## Events
 
 An **event** is something that happens: a click, a key press, a form submit, the page finishing loading. You attach a **listener** that runs when it happens:
@@ -58,6 +81,37 @@ form.addEventListener('submit', (event) => {
 ```
 
 Common events: `click`, `input`, `change`, `submit`, `keydown`, `DOMContentLoaded`.
+
+:::exercise React to a click
+@@file script.js
+@@html
+<h1 id="title">Linen Wrap Dress</h1>
+<button id="buy">Add to bag</button>
+@@prompt
+Make the button say `Added` when clicked:
+
+1. `const button = document.querySelector('#buy');`
+2. `button.addEventListener('click', () => {`
+3. Inside, indented: `button.textContent = 'Added';`
+4. Close it: `});`
+
+Run it, then click the button in the preview.
+@@solution
+const button = document.querySelector('#buy');
+button.addEventListener('click', () => {
+  button.textContent = 'Added';
+});
+@@hint const\s+button\s*=\s*document\.querySelector\(\s*['"]#buy['"]\s*\)
+Line 1: `const button = document.querySelector('#buy');`
+@@hint button\.addEventListener\(\s*['"]click['"]\s*,
+Line 2 starts `button.addEventListener('click',` (capital L in `Listener`).
+@@hint ,\s*\(\s*\)\s*=>\s*\{
+Then an arrow function with no parameters: `() => {`
+@@hint button\.textContent\s*=\s*['"]Added['"]
+Inside: `button.textContent = 'Added';`
+@@hint ^\s*\}\s*\)\s*;?\s*$
+Close the function and the call: `});`
+:::
 
 ## The state, render, action pattern
 
@@ -102,6 +156,32 @@ const saved = JSON.parse(localStorage.getItem('todos') || '[]');  // load
 ```
 
 It only stores strings (hence `JSON.stringify`), it is per-browser, and users can clear it. Fine for preferences and drafts; not a database. (This very site saves your progress this way.)
+
+:::exercise Turn data into text and back
+@@file storage.js
+@@prompt
+`localStorage` only stores text, so you convert with JSON. Write four lines:
+
+1. `const todos = ['Buy fabric', 'Post photos'];`
+2. `const text = JSON.stringify(todos);`
+3. `const back = JSON.parse(text);`
+4. `console.log(text, back.length);`
+@@solution
+const todos = ['Buy fabric', 'Post photos'];
+const text = JSON.stringify(todos);
+const back = JSON.parse(text);
+console.log(text, back.length);
+@@hint const\s+todos\s*=\s*\[
+Line 1 is an array of two strings.
+@@hint JSON\.stringify\(\s*todos\s*\)
+Line 2: `const text = JSON.stringify(todos);` (JSON in capitals).
+@@hint JSON\.parse\(\s*text\s*\)
+Line 3: `const back = JSON.parse(text);`
+@@hint console\.log\(\s*text\s*,\s*back\.length\s*\)
+Line 4: `console.log(text, back.length);`
+@@explain
+`stringify` turns the array into the text `["Buy fabric","Post photos"]`, ready to save. `parse` turns it back into a real array with a `length` of 2.
+:::
 
 ## Quiz
 

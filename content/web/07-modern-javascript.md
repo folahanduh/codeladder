@@ -28,6 +28,25 @@ In the browser, load the entry file with `<script type="module" src="main.js"></
 
 A file can also have one **default** export: `export default function App() {}`, imported without braces: `import App from './App.js'`.
 
+:::exercise Export a function from a module
+@@file money.js
+@@run false
+@@prompt
+Write a module that exports a function `formatGBP(pence)` which returns a template literal: a pound sign followed by `${(pence / 100).toFixed(2)}`.
+@@solution
+export function formatGBP(pence) {
+  return `£${(pence / 100).toFixed(2)}`;
+}
+@@hint ^\s*export\s+function\s+formatGBP\s*\(\s*pence\s*\)\s*\{
+Line 1: `export function formatGBP(pence) {`
+@@hint return\s+`£\$\{
+Line 2 returns a template literal: `return` then a backtick, a pound sign, a dollar sign and an opening curly brace.
+@@hint \(\s*pence\s*\/\s*100\s*\)\.toFixed\(\s*2\s*\)\s*\}`
+Inside the braces: `(pence / 100).toFixed(2)`, then a closing brace and backtick.
+@@explain
+Another file can now write `import { formatGBP } from './money.js';`. One job per file keeps big projects understandable.
+:::
+
 ## Why asynchronous code exists
 
 Some things take time: network requests, reading files, waiting for a user. JavaScript does not freeze while waiting. Instead, slow operations return a **Promise**: an object that will eventually hold a result (or an error).
@@ -65,6 +84,34 @@ Three things beginners miss:
 1. `fetch` only rejects on network failure. A 404 or 500 still "succeeds", so check `response.ok`.
 2. `response.json()` is also async, so it needs `await`.
 3. Always handle errors. Networks fail all the time, especially on phones.
+
+:::exercise Fetch real data, handling errors
+@@file weather.js
+@@prompt
+Fetch London's current temperature from the free Open-Meteo API. Four lines:
+
+1. `const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=51.51&longitude=-0.13&current=temperature_2m');`
+2. If the response is not OK, throw an error: `if (!res.ok) throw new Error(...);` where the message is a template literal: a backtick, the text `HTTP ` and `${res.status}`, then a closing backtick.
+3. `const data = await res.json();`
+4. `console.log(data.current.temperature_2m);`
+@@solution
+const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=51.51&longitude=-0.13&current=temperature_2m');
+if (!res.ok) throw new Error(`HTTP ${res.status}`);
+const data = await res.json();
+console.log(data.current.temperature_2m);
+@@hint const\s+res\s*=\s*await\s+fetch\(
+Line 1 starts `const res = await fetch(` with the URL in quotes.
+@@hint api\.open-meteo\.com/v1/forecast\?latitude=51\.51&longitude=-0\.13&current=temperature_2m
+Check the URL carefully: `latitude=51.51&longitude=-0.13&current=temperature_2m`
+@@hint if\s*\(\s*!\s*res\.ok\s*\)\s*throw\s+new\s+Error\(
+Line 2: `if (!res.ok) throw new Error(...)`. The `!` means "not".
+@@hint `HTTP \$\{res\.status\}`
+The error message is a template literal: backtick, `HTTP `, then the status in `${ }`, then a backtick.
+@@hint const\s+data\s*=\s*await\s+res\.json\(\s*\)
+Line 3: `const data = await res.json();`
+@@hint data\.current\.temperature_2m
+Line 4: `console.log(data.current.temperature_2m);`
+:::
 
 ## Running requests in parallel
 
@@ -109,6 +156,28 @@ const label = isSale ? 'Sale' : 'New';     // ternary: a one-line if/else
 
 :::tip CORS errors
 "Blocked by CORS policy" means the server you called does not allow browsers on other websites to read its responses. It is a server setting, not a bug in your fetch code. Solutions: use an API that allows it, or call it from your own back end.
+:::
+
+:::exercise Optional chaining and a default
+@@file city.js
+@@prompt
+This user has no address. Read the city safely, with `'Unknown'` as the fallback. Three lines:
+
+1. `const user = { name: 'Ada' };`
+2. `const city = user.address?.city ?? 'Unknown';`
+3. `console.log(city);`
+@@solution
+const user = { name: 'Ada' };
+const city = user.address?.city ?? 'Unknown';
+console.log(city);
+@@hint const\s+user\s*=\s*\{\s*name\s*:\s*['"]Ada['"]\s*\}
+Line 1: `const user = { name: 'Ada' };`
+@@hint user\.address\?\.city
+Use `?.` so a missing address does not crash: `user.address?.city`
+@@hint \?\?\s*['"]Unknown['"]
+Then the fallback with two question marks: `?? 'Unknown'`
+@@explain
+Without `?.`, reading `.city` of `undefined` throws a TypeError and stops the page. With it, you get `undefined`, and `??` swaps in `'Unknown'`.
 :::
 
 ## Quiz

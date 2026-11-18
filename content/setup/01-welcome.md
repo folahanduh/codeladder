@@ -41,6 +41,48 @@ Every lesson follows the same loop. Do not skip steps.
 When you get stuck, try for 20 focused minutes: read the error, search it, simplify the problem. Then ask for help. Never suffer for hours, and never ask after 30 seconds.
 :::
 
+:::exercise Your very first line of code
+@@file hello.js
+@@prompt
+Every lesson has exercises like this one. Type the code in the editor, then press **Check my code** (or [[Ctrl+Enter]]). Wrong answers get a tip; after **5 wrong tries in a row** the answer appears as faded ghost text for you to type over.
+
+Type this exact line: `console.log('Hello, world!');`
+
+It tells the computer to print the text *Hello, world!*. After it passes, look at the **Output** box.
+@@solution
+console.log('Hello, world!');
+@@hint ^\s*console
+Start with the word `console`, all lower case.
+@@hint console\.log
+After `console` comes a dot and then `log`: `console.log`
+@@hint console\.log\(
+Open a round bracket straight after `log`, with no space: `console.log(`
+@@hint ['"]Hello, world!['"]
+The text goes inside quotes, with the comma and exclamation mark: `'Hello, world!'`
+@@hint \)\s*;?\s*$
+Close the round bracket at the end and finish with a semicolon: `);`
+@@explain
+`console.log(...)` is a built-in instruction that prints whatever is inside the brackets. Text goes in quotes so the computer knows it is text, not more code. Almost every programmer started with this exact line.
+:::
+
+:::exercise Make the computer do maths
+@@file maths.js
+@@prompt
+Print the answer to 7 times 6. In code, multiply is written with a star: `*`. Numbers do not need quotes.
+
+Type: `console.log(7 * 6);`
+@@solution
+console.log(7 * 6);
+@@hint console\.log\(
+Start with `console.log(` exactly like the last exercise.
+@@hint 7\s*\*\s*6
+Inside the brackets: `7 * 6`. No quotes, because these are numbers.
+@@hint \)\s*;?\s*$
+Close the bracket and add a semicolon: `);`
+@@explain
+The computer works out `7 * 6` first, then prints the result: **42**. Without quotes, `7 * 6` is a calculation. With quotes, `'7 * 6'` would just be text and would print as it is.
+:::
+
 ## How to ask a good question
 
 Whether you ask a friend, a forum or an AI, include these four things. Writing them down often solves the problem before you send it.

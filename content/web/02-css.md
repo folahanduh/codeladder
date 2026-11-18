@@ -23,6 +23,28 @@ Link a stylesheet from your HTML `<head>`:
 <link rel="stylesheet" href="styles.css">
 ```
 
+:::exercise Your first CSS rule
+@@file styles.css
+@@html
+<h1>Amara Studio</h1>
+<p>Handmade brass jewellery from London.</p>
+@@prompt
+Write a rule that styles every `h1`: colour `#b4532a` and font size `2.5rem`. One property per line, each ending with a semicolon. Press **Run it** to see it applied to a sample page.
+@@solution
+h1 {
+  color: #b4532a;
+  font-size: 2.5rem;
+}
+@@hint ^\s*h1\s*\{
+Start with the selector and an opening brace: `h1 {`
+@@hint color\s*:\s*#b4532a
+`color: #b4532a;` (American spelling: color).
+@@hint font-size\s*:\s*2\.5rem
+`font-size: 2.5rem;` with a hyphen in the property name.
+@@hint ^\s*\}\s*$
+Close the rule with `}`.
+:::
+
 ## Selectors you will use daily
 
 | Selector | Matches |
@@ -77,6 +99,23 @@ By default, `width` only sets the content size, so padding and border make the b
 
 Now `width: 300px` means 300px total, padding and border included.
 
+:::exercise The border-box reset
+@@file styles.css
+@@run false
+@@prompt
+Write the rule every professional stylesheet starts with: make every element, and every `::before` and `::after` pseudo-element, use `box-sizing: border-box`.
+@@solution
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+@@hint ^\s*\*\s*,
+The selector starts with `*` (every element), then a comma.
+@@hint \*::before\s*,\s*\*::after
+Then `*::before, *::after` (two colons each).
+@@hint box-sizing\s*:\s*border-box
+Inside: `box-sizing: border-box;`
+:::
+
 ## Colours, fonts and units
 
 ```css try
@@ -120,6 +159,35 @@ body {
 
 :::tip The red outline trick
 When a layout misbehaves, add `* { outline: 1px solid red; }` temporarily. You will instantly see every box and what is overflowing.
+:::
+
+:::exercise Brand colours with a variable
+@@file styles.css
+@@html
+<a class="button" href="#">Shop now</a>
+@@prompt
+Write two rules:
+
+1. On `:root`, define a custom property `--brand` with the value `#b4532a`.
+2. On `.button`, set `background` to `var(--brand)` and `color` to `white`.
+@@solution
+:root {
+  --brand: #b4532a;
+}
+.button {
+  background: var(--brand);
+  color: white;
+}
+@@hint ^\s*:root\s*\{
+Rule 1 starts `:root {`
+@@hint --brand\s*:\s*#b4532a
+Custom properties start with two hyphens: `--brand: #b4532a;`
+@@hint ^\s*\.button\s*\{
+Rule 2 starts `.button {` (a dot, because it is a class).
+@@hint background\s*:\s*var\(\s*--brand\s*\)
+Use the variable with `var(--brand)`: `background: var(--brand);`
+@@hint color\s*:\s*white
+Then `color: white;`
 :::
 
 ## Quiz

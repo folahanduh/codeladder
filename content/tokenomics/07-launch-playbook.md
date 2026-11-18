@@ -41,6 +41,38 @@ Use this before buying, promoting or advising on a token:
 - **Team and marketing**: anonymous team plus pressure to buy now; paid promotions without disclosure; guaranteed returns.
 - **Honeypot behaviour**: you can buy but cannot sell (test with a tiny amount, or use a scanner, before anything else).
 
+:::exercise An automated red-flag checker
+@@file redflags.js
+@@prompt
+Six lines:
+
+1. `const token = { insiderShare: 0.55, lpLocked: false, ownerCanMint: true };`
+2. `const flags = [];`
+3. `if (token.insiderShare > 0.4) flags.push('Insiders above 40%');`
+4. `if (!token.lpLocked) flags.push('Liquidity not locked');`
+5. `if (token.ownerCanMint) flags.push('Owner can mint');`
+6. `console.log(flags);`
+@@solution
+const token = { insiderShare: 0.55, lpLocked: false, ownerCanMint: true };
+const flags = [];
+if (token.insiderShare > 0.4) flags.push('Insiders above 40%');
+if (!token.lpLocked) flags.push('Liquidity not locked');
+if (token.ownerCanMint) flags.push('Owner can mint');
+console.log(flags);
+@@hint const\s+token\s*=\s*\{\s*insiderShare\s*:\s*0\.55\s*,\s*lpLocked\s*:\s*false\s*,\s*ownerCanMint\s*:\s*true\s*\}
+Line 1: `const token = { insiderShare: 0.55, lpLocked: false, ownerCanMint: true };`
+@@hint const\s+flags\s*=\s*\[\s*\]
+Line 2: an empty array: `const flags = [];`
+@@hint if\s*\(\s*token\.insiderShare\s*>\s*0\.4\s*\)\s*flags\.push\(\s*['"]Insiders above 40%['"]\s*\)
+Line 3: `if (token.insiderShare > 0.4) flags.push('Insiders above 40%');`
+@@hint if\s*\(\s*!\s*token\.lpLocked\s*\)\s*flags\.push\(\s*['"]Liquidity not locked['"]\s*\)
+Line 4 uses `!` for "not": `if (!token.lpLocked) flags.push('Liquidity not locked');`
+@@hint if\s*\(\s*token\.ownerCanMint\s*\)\s*flags\.push\(\s*['"]Owner can mint['"]\s*\)
+Line 5: `if (token.ownerCanMint) flags.push('Owner can mint');`
+@@hint console\.log\(\s*flags\s*\)
+Line 6: `console.log(flags);`
+:::
+
 ## The rules: regulation you must know
 
 This is general awareness, **not legal advice**. Rules change, and penalties are serious. Speak to a qualified lawyer before launching or promoting a token.
