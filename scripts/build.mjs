@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT_DIR = path.join(root, 'content');
 const OUT_FILE = path.join(root, 'assets', 'content.js');
-const TRACKS = ['setup', 'web', 'crypto', 'security', 'keys', 'tokenomics'];
+const TRACKS = ['setup', 'web', 'crypto', 'security', 'keys', 'encrypt', 'tokenomics'];
 const LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
 
 const esc = (s) =>

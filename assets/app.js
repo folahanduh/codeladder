@@ -13,6 +13,7 @@
     { id: 'crypto', name: 'Cryptography & Blockchain', blurb: 'Hashes, keys and signatures, then Solidity, tokens, dApps and smart-contract security.' },
     { id: 'security', name: 'Cybersecurity', blurb: 'From the security mindset and phishing to web hacking, key management, audits, incident response, formal verification and securing a blockchain launch. Beginner to expert.' },
     { id: 'keys', name: 'Keys & Accounts', blurb: 'Private keys, seed phrases, sessions, OAuth and third-party API access, account takeover, launchpad signing, KMS and MPC, recovery and automated detection. The number one way blockchains and apps get drained, from beginner to expert.' },
+    { id: 'encrypt', name: 'Encryption', blurb: 'Make every hack worth less: encrypt your devices, backups, files, secrets, traffic and app data, then go deep on envelope encryption with a KMS, end-to-end encryption, how real encryption gets broken, and post-quantum cryptography. Beginner to expert.' },
     { id: 'tokenomics', name: 'Tokenomics', blurb: 'Supply, allocation, vesting, liquidity and incentives, and how to model a token economy honestly.' },
   ];
   const LEVELS = [
@@ -821,7 +822,7 @@
       <div class="grid-3">
         ${hs.map((h) => { const s = hackScore(h); return `<button type="button" class="card tool-card hack-jump" data-jump="${h.id}"><span class="tip-cat">${esc(h.level)}</span><h3>${esc(h.name)}</h3><p>${esc(h.tagline)}</p><span class="small muted">${s.got} / ${s.total} points</span></button>`; }).join('')}
       </div>
-      <aside class="callout callout-warn"><p class="callout-title">Stay legal</p><p>Only attack the challenges here, practice apps running on your own machine, and platforms or bug bounties that give you permission. Testing anything else without written permission can be a crime under the UK Computer Misuse Act and similar laws elsewhere.</p></aside>
+      <aside class="callout callout-warn"><p class="callout-title">Stay legal</p><p>Only attack the challenges here, practice apps running on your own machine, and platforms or bug bounties that give you permission. Testing anything else without written permission can be a federal crime under the US Computer Fraud and Abuse Act, and break state computer crime laws (and similar laws in other countries).</p></aside>
       ${hs.map((h) => {
         const s = hackScore(h);
         const head = `<div class="hack-head">

@@ -60,6 +60,10 @@ While paused, `deposit` reverts. Think carefully about **which** functions to pa
 4. **Get help**: the security community runs emergency response for exactly this (for example **SEAL 911**, a volunteer hotline of experienced white hats). Prepare contacts in advance.
 5. **Communicate**: a short, honest public update quickly ("We are investigating an incident affecting X. Deposits are paused. Do not interact with Y."), then regular updates. Silence breeds panic and scams.
 6. **Trace and recover**: follow the funds, contact exchanges and stablecoin issuers that can freeze assets, and consider a public bounty offer for the return of funds.
+7. **Report it (US)**: file a report with the **FBI's Internet Crime Complaint Center** (ic3.gov) including transaction hashes and addresses, as exchanges and issuers often need a law-enforcement report before they freeze funds. Bring in a lawyer early, because legal duties start running quickly:
+   - If personal data was exposed, **state breach-notification laws** (every state has one) set deadlines for telling affected people, and sometimes the state attorney general.
+   - A **public company** must disclose a material cybersecurity incident on SEC **Form 8-K** within four business days of deciding it is material.
+   - Regulated firms have their own rules (New York's DFS, for example, requires notice within 72 hours for many incidents). CISA also takes voluntary reports and can help.
 
 ## Learn: the blameless post-mortem
 

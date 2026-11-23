@@ -85,6 +85,15 @@ Since Ethereum's 2025 Pectra upgrade, an ordinary wallet (EOA) can **delegate** 
 - Rotate everything in the same trust zone, not only the key you know about.
 - Publish an honest post-mortem if users were affected.
 
+## Report the theft (US)
+
+Reporting rarely gets funds back on its own, but it unlocks the people who can freeze them:
+
+- File with the **FBI's Internet Crime Complaint Center** at ic3.gov: what happened, when, the addresses involved and every transaction hash.
+- Send that report number to the **exchanges and stablecoin issuers** where the stolen funds land. Many will only freeze assets with a law-enforcement report.
+- Keep a timeline and screenshots. You will need them for insurance, for the IRS (theft losses can matter for tax) and for any civil case.
+- If you run a platform and users' personal data was exposed too, **state breach-notification laws** apply: talk to a lawyer the same day.
+
 ## Quiz
 
 ? Why does sending ETH for gas to a compromised wallet usually fail?

@@ -3,7 +3,7 @@ id: sec-mindset
 title: The security mindset
 level: beginner
 minutes: 25
-summary: What security protects, who attacks and why, how to think about threats, and the law that keeps your learning legal.
+summary: What security protects, who attacks and why, how to think about threats, and the US laws (the CFAA and friends) that keep your learning legal.
 ---
 
 ## Why a whole track on security
@@ -78,20 +78,34 @@ Last line tests a customer: `console.log(canRefund({ role: 'customer' }));`
 It prints `false`. Any role you forgot to think about (a new "intern" role, a typo like "Admin") is denied automatically. The opposite design, "allow unless the role is banned", fails open the moment someone invents a new role.
 :::
 
-## Stay legal: the rules of hacking
+## Stay legal: the rules of hacking (US law)
 
-In the UK, the **Computer Misuse Act 1990** makes it a criminal offence to access a computer system without authorisation, even "just to look", and even if it is easy. Most countries have similar laws (the US Computer Fraud and Abuse Act, for example).
+This course follows **United States law**, because most blockchain companies, exchanges and launchpads operate there or serve US users. It is general awareness, not legal advice.
+
+| Law | What it covers | What it means for you |
+|---|---|---|
+| **Computer Fraud and Abuse Act (CFAA)**, 18 U.S.C. § 1030 | Accessing a computer "without authorization" or "exceeding authorized access", and causing damage | Logging in, scanning for holes or pulling data from a system you have no permission to test can be a federal crime, even "just to look", and even if it was easy. Victims can also sue under the CFAA. |
+| **Wiretap Act** (part of the ECPA), 18 U.S.C. § 2511 | Intercepting other people's communications | Sniffing someone else's network traffic (on café Wi-Fi, say) is illegal. Capture only your own traffic or a lab network. |
+| **State computer crime laws** | Every state has its own (for example California Penal Code § 502) | They can apply even where federal prosecutors would not. |
+| **DMCA § 1201** | Breaking technical protections on software and devices | The Copyright Office grants an exemption for good-faith security research on devices and software you lawfully own, within limits. |
+
+Two developments help researchers, but neither is a free pass:
+
+- In **Van Buren v. United States (2021)** the Supreme Court narrowed "exceeds authorized access" to entering parts of a system that are off-limits to you, rather than misusing data you were allowed to see.
+- In **2022 the Department of Justice** said it will not charge **good-faith security research** under the CFAA. That is a charging policy, not a law: states and companies can still act, and "I was only testing" has to be true and provable.
+
+If you live outside the US, your own country's law applies to you as well (in the UK, for example, the Computer Misuse Act 1990).
 
 The rule is simple: **only test systems you own, or have written permission to test.** That still leaves plenty to practise on:
 
 - Your own machines and apps.
 - Deliberately vulnerable practice apps (OWASP Juice Shop, DVWA).
 - Legal training platforms and CTFs (TryHackMe, Hack The Box, PortSwigger Web Security Academy, picoCTF, Ethernaut).
-- Bug bounty programmes, which give written permission within a published scope.
+- Bug bounty programmes, which give written permission (and usually a legal "safe harbor") within a published scope.
 - The [Ladder CTF](#hackathons) on this site.
 
 :::warn Never "test" a live protocol with real funds
-Exploiting a bug in a live smart contract, even to "prove a point" or "rescue" funds, can be theft in law. If you find a bug in something live, stop, write it up privately, and report it through the project's bug bounty or security contact.
+Exploiting a bug in a live smart contract, even to "prove a point" or "rescue" funds, can be theft in law. US prosecutors have brought wire fraud, commodities fraud and market manipulation charges against people who drained protocols and argued that "the code allowed it". If you find a bug in something live, stop, write it up privately, and report it through the project's bug bounty or security contact.
 :::
 
 ## Quiz
@@ -112,7 +126,7 @@ Exploiting a bug in a live smart contract, even to "prove a point" or "rescue" f
 - [ ] Test it a bit more to be sure, then tell them
 - [ ] Post about it publicly so they fix it fast
 - [x] Do not probe further; report it privately through their security contact or bug bounty
-> Testing without permission can be a crime under the Computer Misuse Act, however good your intentions.
+> Testing without permission can be a federal crime under the Computer Fraud and Abuse Act (and break state law too), however good your intentions.
 
 ? Why do attackers so often target people rather than code?
 - [x] Tricking a person into signing, clicking or running something is often easier than breaking well-tested code

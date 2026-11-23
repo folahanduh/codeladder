@@ -51,7 +51,7 @@ Defences for builders:
 
 ## Scanning (your own machines only)
 
-`nmap` is the classic tool for finding open ports. Run it **only against machines you own or are authorised to test**; scanning other people's systems can be illegal.
+`nmap` is the classic tool for finding open ports. Run it **only against machines you own or are authorised to test**; scanning other people's systems can break the Computer Fraud and Abuse Act and state computer crime laws, and capturing other people's traffic with Wireshark can break the federal Wiretap Act.
 
 :::exercise Scan yourself and inspect a server
 @@file Terminal

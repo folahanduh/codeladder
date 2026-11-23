@@ -3,7 +3,7 @@ id: tok-launch
 title: Launch playbook, red flags and the rules
 level: advanced
 minutes: 35
-summary: How serious teams launch tokens, a checklist for judging any token, and the UK, EU and US rules you must know before marketing one.
+summary: How serious teams launch tokens, a checklist for judging any token, and the US rules (SEC, CFTC, FinCEN, OFAC, FTC, IRS and the states) you must know before selling or marketing one.
 ---
 
 ## A responsible launch, step by step
@@ -73,29 +73,35 @@ Line 5: `if (token.ownerCanMint) flags.push('Owner can mint');`
 Line 6: `console.log(flags);`
 :::
 
-## The rules: regulation you must know
+## The rules: US regulation you must know
 
-This is general awareness, **not legal advice**. Rules change, and penalties are serious. Speak to a qualified lawyer before launching or promoting a token.
+This course follows **United States law**: most token projects, exchanges and launchpads either operate in the US or serve US users, and US agencies have been the most active enforcers. This is general awareness, **not legal advice**. US crypto rules have been changing quickly since 2025, through new laws, court cases and agency guidance, so speak to a qualified US securities lawyer before launching or promoting a token.
 
-### United Kingdom
+| Who | What they police | Why it matters for a token |
+|---|---|---|
+| **SEC** (Securities and Exchange Commission) | Securities: offering, selling and promoting investments | If your token is an investment contract, selling it needs registration or an exemption, and promoters must disclose that they are paid |
+| **CFTC** (Commodity Futures Trading Commission) | Commodities and their derivatives (bitcoin and ether have been treated as commodities) | Fraud and manipulation in commodity markets, and anything leveraged or derivative |
+| **FinCEN** (Treasury) | The Bank Secrecy Act: money transmission and anti-money-laundering | Businesses that transmit value for others may need to register as a money services business and run KYC and AML programmes |
+| **OFAC** (Treasury) | Sanctions | Dealing with sanctioned people, countries or listed crypto addresses is illegal for US persons |
+| **FTC** (Federal Trade Commission) | Deceptive advertising and paid endorsements | Influencers and agencies must clearly disclose paid promotions; misleading claims are illegal |
+| **IRS** | Tax | Digital assets are treated as property; trades, airdrops and staking rewards usually create tax events, and brokers now report crypto sales on Form 1099-DA |
+| **States** | Money transmitter licences, plus regimes such as New York's BitLicense and California's Digital Financial Assets Law | Serving residents of some states needs a licence |
 
-- Since October 2023, **cryptoasset marketing to UK consumers is a regulated financial promotion** under the FCA's rules. Promotions must be made or approved by an authorised firm (or by a firm registered with the FCA for crypto), must be fair, clear and not misleading, carry prominent risk warnings, and first-time investors face a 24-hour cooling-off period and appropriateness checks.
-- This applies to **social media posts, influencers and agencies**, not just exchanges. The FCA has taken action against unlawful crypto promotions, including by influencers.
-- If you run marketing for brands, never promote a token to UK audiences without confirming the promotion has been properly approved.
+### Is your token a security? The Howey test
 
-### European Union
+The SEC and the courts apply the **Howey test** (from a 1946 Supreme Court case about orange groves): it is an **investment contract**, and so a security, if people **invest money** in a **common enterprise** expecting **profits from the efforts of others**. The label does not matter; the economic reality does. Selling tokens to fund development while promising the team will make them valuable is the classic way to fail the test.
 
-- **MiCA** (Markets in Crypto-Assets Regulation) has applied in full since the end of 2024. Most token issuers offering to the public must publish a crypto-asset **white paper** with required disclosures and are responsible for its accuracy; service providers need authorisation; stablecoins have their own strict regime.
+Since 2025 the SEC has narrowed its approach to crypto (for example, staff statements that typical meme coins are not securities), and Congress has passed stablecoin legislation (the **GENIUS Act**, 2025) and worked on wider market-structure rules. Treat any summary, including this one, as a starting point for a lawyer, not an answer.
 
-### United States
+### Marketing a token in the US
 
-- The SEC has long applied the **Howey test**: an investment of money, in a common enterprise, with an expectation of profit from the efforts of others, is an investment contract (a security), whatever it is called. Many token sales have been treated as securities offerings. The US approach has been changing, with new legislation and agency guidance; check the current position with a lawyer.
+- **Disclose payment, every time.** The FTC's Endorsement Guides require a clear disclosure of any paid relationship ("#ad", "Paid partnership"), and if the token is a security, Section 17(b) of the Securities Act requires promoters to disclose what they were paid. In 2022 a celebrity agreed to pay the SEC 1.26 million dollars over an Instagram post promoting a crypto token without disclosing that she had been paid for it.
+- **No promises of returns.** Saying a token will rise in value is exactly what makes it look like an investment contract, and can be fraud if untrue.
+- **Know who you are selling to.** Many launches block US users or restrict sales to accredited investors under exemptions such as Regulation D, precisely because of these rules.
 
-### Everywhere
+### If you also sell outside the US
 
-- **Tax**: token grants to teams, airdrops, staking rewards and trades usually create tax events.
-- **Sanctions and AML**: you must not deal with sanctioned addresses or persons; regulated activities require KYC.
-- **Consumer protection**: do not promise returns or price targets. Ever.
+Other regions have their own regimes, for example the EU's **MiCA** regulation (white papers and licensed service providers) and the UK's FCA financial promotion rules for crypto marketing. A US-compliant launch is not automatically compliant elsewhere.
 
 :::warn Never promise price or returns
 "This will 10x", "guaranteed APY", "get in before the pump": statements like these can turn marketing into an unlawful financial promotion or misrepresentation, and they destroy trust when they fail. Talk about the product, the utility and the risks.
@@ -109,13 +115,19 @@ This is general awareness, **not legal advice**. Rules change, and penalties are
 - [ ] A way to reduce gas
 > Adjustable taxes, blacklists and unlimited minting give the owner power over your money.
 
-? You run social media for a brand that wants you to post about its new token to UK followers. What do the UK rules require?
-- [ ] Nothing, social posts are exempt
-- [ ] Only a hashtag like #ad
-- [x] The promotion must comply with the FCA's financial promotion rules, including approval by an appropriately authorised or registered firm and proper risk warnings
-> UK crypto promotions are regulated, including those by influencers and agencies.
+? A brand pays you to post about its new token to your US followers. What do US rules require at a minimum?
+- [ ] Nothing, social posts are free speech
+- [ ] Only that you own some of the token yourself
+- [x] A clear disclosure that you are paid (FTC), plus disclosure of your compensation under securities law if the token is a security, and no promises of returns
+> Undisclosed paid promotion has cost promoters dearly: one celebrity paid the SEC 1.26 million dollars over a single Instagram post.
 
-? Under the US Howey test, what makes a token sale look like a securities offering?
+? Which US agency maintains the sanctions list that includes specific crypto addresses?
+- [ ] The SEC
+- [x] OFAC, part of the Treasury
+- [ ] The FTC
+> US persons must not deal with sanctioned people or addresses; screen deposits and claims against the list.
+
+? Under the Howey test, what makes a token sale look like a securities offering?
 - [x] People invest money expecting profits from the efforts of the team
 - [ ] The token uses the ERC-20 standard
 - [ ] The token has a fixed supply
