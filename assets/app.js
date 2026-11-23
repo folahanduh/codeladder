@@ -12,6 +12,7 @@
     { id: 'web', name: 'Web Development', blurb: 'HTML, CSS and JavaScript, then TypeScript, React, Next.js, databases, testing, security and performance.' },
     { id: 'crypto', name: 'Cryptography & Blockchain', blurb: 'Hashes, keys and signatures, then Solidity, tokens, dApps and smart-contract security.' },
     { id: 'security', name: 'Cybersecurity', blurb: 'From the security mindset and phishing to web hacking, key management, audits, incident response, formal verification and securing a blockchain launch. Beginner to expert.' },
+    { id: 'keys', name: 'Keys & Accounts', blurb: 'Private keys, seed phrases, sessions, OAuth and third-party API access, account takeover, launchpad signing, KMS and MPC, recovery and automated detection. The number one way blockchains and apps get drained, from beginner to expert.' },
     { id: 'tokenomics', name: 'Tokenomics', blurb: 'Supply, allocation, vesting, liquidity and incentives, and how to model a token economy honestly.' },
   ];
   const LEVELS = [
@@ -21,13 +22,14 @@
     { id: 'expert', name: 'Expert' },
   ];
   const NUM_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
-  // levels that actually have lessons in a track (only Cybersecurity goes up to Expert)
+  // levels that actually have lessons in a track (only the security tracks go up to Expert)
   const levelsOf = (trackId) => LEVELS.filter((lv) => LESSONS.some((l) => l.track === trackId && l.level === lv.id));
   const TOOL_PAGES = [
     { id: 'playground', name: 'Code Playground', blurb: 'Write HTML, CSS and JavaScript and see it run instantly, with a console.' },
     { id: 'hash-lab', name: 'Hash Lab', blurb: 'Watch SHA-256 scramble your text, and mine a block with proof of work.' },
     { id: 'token-sim', name: 'Tokenomics Simulator', blurb: 'Design an allocation and vesting schedule and see circulating supply month by month.' },
     { id: 'amm-lab', name: 'AMM Lab', blurb: 'Swap against an x*y=k pool, see price impact and impermanent loss.' },
+    { id: 'critical-moment', name: 'Critical Moment', blurb: 'A live attack on a virtual machine and a clock. Identify the attack, decode the evidence, stop it in the right order. Describe any scenario and the AI builds it, then ask the AI coach anything.' },
   ];
   const RANKS = [
     [0, 'Hello, World'], [150, 'Tinkerer'], [500, 'Builder'], [1000, 'Shipper'],
@@ -59,7 +61,7 @@
 
   // ---------------------------------------------------------------- storage
   const KEY = 'code-ladder-v1';
-  const DEFAULTS = () => ({ done: {}, quiz: {}, ex: {}, ctf: {}, hack: {}, tools: {}, projects: {}, habits: {}, last: null, days: [], os: null, theme: 'system', tipSeen: 0 });
+  const DEFAULTS = () => ({ done: {}, quiz: {}, ex: {}, ctf: {}, hack: {}, crit: {}, tools: {}, projects: {}, habits: {}, last: null, days: [], os: null, theme: 'system', tipSeen: 0 });
   const store = {
     data: (() => {
       try {
@@ -87,6 +89,7 @@
     total += Object.values(d.tools).filter(Boolean).length * 5;
     total += Object.values(d.ex || {}).reduce((n, v) => n + (v === 'solved' ? 15 : v === 'assisted' ? 5 : 0), 0);
     total += Math.round(hackPoints() / 5);
+    total += Object.values(d.crit || {}).reduce((n, v) => n + Math.round(v / 2), 0);
     return total;
   }
   // points from captured CTF flags and ticked hackathon milestones
@@ -221,7 +224,7 @@
       <section class="hero">
         <p class="eyebrow">Self-paced coding school</p>
         <h1>Climb from your first HTML tag to shipping smart contracts.</h1>
-        <p class="lede">${LESSONS.length} lessons in ${NUM_WORDS[TRACKS.length] || TRACKS.length} tracks, with ${LESSONS.reduce((n, l) => n + l.exercises.length, 0)} coding exercises and a quiz in every lesson. Projects for every level, hackathons and a capture-the-flag, an install guide for every tool a professional uses, and four hands-on labs. Your progress saves in this browser.</p>
+        <p class="lede">${LESSONS.length} lessons in ${NUM_WORDS[TRACKS.length] || TRACKS.length} tracks, with ${LESSONS.reduce((n, l) => n + l.exercises.length, 0)} coding exercises and a quiz in every lesson. Projects for every level, hackathons and a capture-the-flag, an install guide for every tool a professional uses, and ${NUM_WORDS[TOOL_PAGES.length]} hands-on labs, including the Critical Moment attack simulator with an AI coach. Your progress saves in this browser.</p>
         <div class="row">
           <a class="btn btn-primary" href="#lesson-${next.id}">${done ? 'Continue' : 'Start'}: ${esc(next.title)}</a>
           <a class="btn" href="#roadmap">See the 12-month roadmap</a>
@@ -254,7 +257,7 @@
           <p class="eyebrow">Your rank</p>
           <p class="rank-big">${r.name}</p>
           <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(progressToNext * 100)}" aria-label="Progress to next rank"><span style="width:${Math.round(progressToNext * 100)}%"></span></div>
-          <p class="muted small">${r.next ? `${(r.next[0] - xp()).toLocaleString()} XP to <strong>${r.next[1]}</strong>. Lessons give 40 XP, coding exercises 15, perfect quizzes 20, shipped projects 150, and CTF flags and hackathon milestones a fifth of their points.` : 'Top rank reached. Now teach someone else.'}</p>
+          <p class="muted small">${r.next ? `${(r.next[0] - xp()).toLocaleString()} XP to <strong>${r.next[1]}</strong>. Lessons give 40 XP, coding exercises 15, perfect quizzes 20, shipped projects 150, and CTF flags and hackathon milestones a fifth of their points, and Critical Moment runs half your best score.` : 'Top rank reached. Now teach someone else.'}</p>
           <p class="muted small">Active days in a row: <strong>${streak()}</strong></p>
         </div>
         <div class="card" style="display:grid;gap:10px;align-content:start">
@@ -269,7 +272,7 @@
       <section class="section" aria-labelledby="labs">
         <h2 class="section-title" id="labs">Hands-on labs</h2>
         <div class="grid-2">
-          ${TOOL_PAGES.map((t) => `<a class="card tool-card" href="#${t.id}"><h3>${t.name}</h3><p>${t.blurb}</p></a>`).join('')}
+          ${TOOL_PAGES.map((t) => `<a class="card tool-card${t.id === 'critical-moment' ? ' tool-card-feature' : ''}" href="#${t.id}">${t.id === 'critical-moment' ? '<span class="tip-cat">New &middot; attack simulator + AI coach</span>' : ''}<h3>${t.name}</h3><p>${t.blurb}</p></a>`).join('')}
         </div>
       </section>
 
@@ -376,6 +379,7 @@
       <div class="lesson-actions">
         <button class="btn${isDone(l.id) ? '' : ' btn-primary'}" type="button" id="toggleDone">${isDone(l.id) ? 'Mark as not done' : 'Mark lesson complete'}</button>
         <a class="btn" href="#track-${t.id}">All ${t.name} lessons</a>
+        <button class="btn" type="button" id="askCoach">Ask the AI coach</button>
       </div>
       <nav class="pager" aria-label="Lesson navigation">
         ${prev ? `<a href="#lesson-${prev.id}"><span class="dir">Previous</span><span>${esc(prev.title)}</span></a>` : '<span></span>'}
@@ -387,6 +391,15 @@
   function mountLesson(id) {
     const l = lessonById(id);
     if (!l) return;
+    $('#askCoach')?.addEventListener('click', () => {
+      if (!window.CL_AI) return;
+      window.CL_AI.openDrawer({
+        title: 'AI coach',
+        intro: `Ask me anything about **${l.title}**: what a line of code does, why something matters, or for a harder example.`,
+        suggestions: ['Explain this lesson more simply', 'Give me a real-world example', 'Quiz me on this lesson'],
+        getContext: () => `Lesson: ${l.title} (${trackOf(l.track).name}, ${l.level}). Summary: ${l.summary}\n\nLesson text:\n${l.text.slice(0, 18000)}`,
+      });
+    });
     $('#toggleDone')?.addEventListener('click', () => {
       const btn = $('#toggleDone');
       if (isDone(l.id)) delete store.data.done[l.id];
@@ -687,6 +700,7 @@
         <div class="stat"><b>${quizPassed}</b><span>Quizzes passed</span></div>
         <div class="stat"><b>${Object.keys(d.ctf || {}).length}/${(D.hackathons || []).filter((h) => h.type === 'ctf').reduce((n, h) => n + h.challenges.length, 0)}</b><span>CTF flags captured</span></div>
         <div class="stat"><b>${Object.values(d.ex || {}).filter((v) => v === 'solved').length}/${LESSONS.reduce((n, l) => n + l.exercises.length, 0)}</b><span>Exercises solved on your own</span></div>
+        <div class="stat"><b>${Object.keys(d.crit || {}).length}/${(window.CL_SCENARIOS || []).length}</b><span>Critical Moment scenarios scored</span></div>
         <div class="stat"><b>${shipped}/${D.projects.length}</b><span>Projects shipped</span></div>
         <div class="stat"><b>${tools}/${countTools()}</b><span>Tools installed</span></div>
         <div class="stat"><b>${d.days.length}</b><span>Active days</span></div>
@@ -1011,6 +1025,7 @@
     D.glossary.forEach((g) => index.push({ kind: 'Glossary', title: g.term, hay: (g.term + ' ' + g.def).toLowerCase(), body: '', href: '#glossary', gloss: g.term }));
     D.tips.forEach((t) => index.push({ kind: `Tip · ${t.cat}`, title: t.title, hay: (t.title + ' ' + t.body).toLowerCase(), body: '', href: '#tips' }));
     D.projects.forEach((p) => index.push({ kind: 'Project', title: p.title, hay: (p.title + ' ' + p.brief).toLowerCase(), body: '', href: '#projects' }));
+    (window.CL_SCENARIOS || []).forEach((s) => index.push({ kind: 'Critical Moment', title: s.title, hay: (s.title + ' ' + s.tags.join(' ') + ' scenario attack simulator').toLowerCase(), body: s.brief.toLowerCase(), href: '#critical-moment' }));
     (D.hackathons || []).forEach((h) => {
       index.push({ kind: 'Hackathon', title: h.name, hay: (h.name + ' ' + h.tagline + ' hackathon ctf').toLowerCase(), body: h.intro.toLowerCase(), href: '#hackathons' });
       (h.challenges || []).forEach((c) => index.push({ kind: `CTF challenge · ${c.cat}`, title: c.title, hay: (c.title + ' ' + c.cat + ' ctf').toLowerCase(), body: c.body.toLowerCase(), href: '#hackathons' }));
@@ -1088,7 +1103,18 @@
     progress: [viewProgress, mountProgress],
     hackathons: [viewHackathons, mountHackathons],
   };
-  const TOOL_MOUNT = { playground: 'playground', 'hash-lab': 'hashLab', 'token-sim': 'tokenSim', 'amm-lab': 'amm' };
+  const TOOL_MOUNT = { playground: 'playground', 'hash-lab': 'hashLab', 'token-sim': 'tokenSim', 'amm-lab': 'amm', 'critical-moment': 'critical' };
+  // Critical Moment keeps your best score per scenario
+  function saveScore(id, score) {
+    store.data.crit = store.data.crit || {};
+    const before = store.data.crit[id] || 0;
+    if (score > before) {
+      store.data.crit[id] = score;
+      store.markActive();
+      store.save();
+      toast(before ? `New best: ${score}/100 (+${Math.round(score / 2) - Math.round(before / 2)} XP)` : `Scored ${score}/100: +${Math.round(score / 2)} XP`);
+    }
+  }
 
   let lastHash = null;
   function route(keepScroll) {
@@ -1098,6 +1124,8 @@
     lastHash = h;
     if (TOOLS.beforeLeave) TOOLS.beforeLeave();
     if (window.CL_EXERCISES) window.CL_EXERCISES.cleanup();
+    if (window.CL_CRITICAL) window.CL_CRITICAL.cleanup();
+    if (window.CL_AI) window.CL_AI.closeDrawer();
     clearInterval(hackTimer);
     if (h.startsWith('track-')) {
       main.innerHTML = viewTrack(h.slice(6));
@@ -1106,8 +1134,8 @@
       mountLesson(h.slice(7));
     } else if (TOOL_MOUNT[h]) {
       main.innerHTML = viewTool(h);
-      const fn = TOOLS[TOOL_MOUNT[h]];
-      if (fn) fn($('#toolBody'), { toast, copyText, enhanceCode });
+      const fn = h === 'critical-moment' ? (window.CL_CRITICAL && window.CL_CRITICAL.mount) : TOOLS[TOOL_MOUNT[h]];
+      if (fn) fn($('#toolBody'), { toast, copyText, enhanceCode, saveScore, getBest: () => ({ ...(store.data.crit || {}) }) });
       else $('#toolBody').innerHTML = '<p class="muted">This tool failed to load.</p>';
     } else {
       const v = VIEWS[h] || VIEWS.home;

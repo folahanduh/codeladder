@@ -2,7 +2,7 @@
   "name": "code-ladder",
   "version": "1.0.0",
   "private": true,
-  "description": "A self-paced coding school: web development, cryptography, smart contracts and tokenomics from beginner to advanced.",
+  "description": "A self-paced coding school: web development, cybersecurity, key and account security, smart contracts and tokenomics from beginner to expert, with an attack simulator and an AI coach.",
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
@@ -12,5 +12,8 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.12.0"
+  }
 }

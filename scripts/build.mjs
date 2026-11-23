@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT_DIR = path.join(root, 'content');
 const OUT_FILE = path.join(root, 'assets', 'content.js');
-const TRACKS = ['setup', 'web', 'crypto', 'security', 'tokenomics'];
+const TRACKS = ['setup', 'web', 'crypto', 'security', 'keys', 'tokenomics'];
 const LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
 
 const esc = (s) =>
@@ -271,7 +271,8 @@ function parseLesson(text, file) {
   const meta = {};
   for (const line of fm[1].split('\n')) {
     const m = line.match(/^(\w+):\s*(.*)$/);
-    if (m) meta[m[1]] = m[2].trim();
+    // values may be wrapped in quotes, as in YAML: title: "Keys: a guide"
+    if (m) meta[m[1]] = m[2].trim().replace(/^(["'])(.*)\1$/, '$2');
   }
   for (const key of ['id', 'title', 'level', 'summary']) {
     if (!meta[key]) throw new Error(`${file}: front matter needs "${key}"`);
