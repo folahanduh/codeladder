@@ -12,8 +12,8 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT_DIR = path.join(root, 'content');
 const OUT_FILE = path.join(root, 'assets', 'content.js');
-const TRACKS = ['setup', 'web', 'crypto', 'tokenomics'];
-const LEVELS = ['beginner', 'intermediate', 'advanced'];
+const TRACKS = ['setup', 'web', 'crypto', 'security', 'tokenomics'];
+const LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
 
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -92,7 +92,7 @@ function parseList(lines, start, ordered) {
 //   @@hint <regex>        if the learner's code does NOT match <regex>, this tip is shown (repeatable, in order)
 //   @@explain             Markdown shown once the exercise is solved
 let exercises = [];
-const EXT_LANG = { js: 'js', mjs: 'js', ts: 'ts', tsx: 'ts', html: 'html', css: 'css', sh: 'bash', py: 'python', sol: 'solidity', sql: 'sql', json: 'json' };
+const EXT_LANG = { js: 'js', mjs: 'js', ts: 'ts', tsx: 'ts', html: 'html', css: 'css', sh: 'bash', py: 'python', sol: 'solidity', sql: 'sql', json: 'json', yml: 'yaml', yaml: 'yaml' };
 
 function parseExercise(title, lines) {
   const ex = { title: inline(title || 'Your turn'), file: 'main.js', lang: '', run: null, prompt: '', starter: '', html: '', solution: '', also: [], hints: [], explain: '' };

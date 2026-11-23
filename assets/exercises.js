@@ -7,8 +7,8 @@ window.CL_EDITOR = (function () {
   'use strict';
 
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const LANG_NAMES = { js: 'JavaScript', ts: 'TypeScript', html: 'HTML', css: 'CSS', bash: 'Shell', python: 'Python', solidity: 'Solidity', sql: 'SQL', json: 'JSON', text: 'Plain Text' };
-  const HL = { js: 'javascript', ts: 'typescript', html: 'xml', css: 'css', bash: 'bash', python: 'python', solidity: 'solidity', sql: 'sql', json: 'json' };
+  const LANG_NAMES = { js: 'JavaScript', ts: 'TypeScript', html: 'HTML', css: 'CSS', bash: 'Shell', python: 'Python', solidity: 'Solidity', sql: 'SQL', json: 'JSON', yaml: 'YAML', text: 'Plain Text' };
+  const HL = { js: 'javascript', ts: 'typescript', html: 'xml', css: 'css', bash: 'bash', python: 'python', solidity: 'solidity', sql: 'sql', json: 'json', yaml: 'yaml' };
   const LINE_H = 22;   // must match the CSS line-height of .vsc-input and .vsc-mirror
   const PAD_Y = 12;    // must match the CSS vertical padding
   const EXTRA = 12;    // room for a horizontal scrollbar
@@ -184,7 +184,7 @@ window.CL_EXERCISES = (function () {
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const COMMENT = {
     js: /^\s*\/\//, ts: /^\s*\/\//, solidity: /^\s*\/\//, css: /^\s*\/\*.*\*\/\s*$/,
-    bash: /^\s*#/, python: /^\s*#/, sql: /^\s*--/, html: /^\s*<!--.*-->\s*$/,
+    bash: /^\s*#/, python: /^\s*#/, yaml: /^\s*#/, sql: /^\s*--/, html: /^\s*<!--.*-->\s*$/,
   };
 
   // Turn code into a comparable form: ignore blank lines, comment-only lines, spacing, quote style,
@@ -197,13 +197,14 @@ window.CL_EXERCISES = (function () {
       if (lang === 'js' || lang === 'ts' || lang === 'css') s = s.replace(/;+\s*$/, '');
       if (lang === 'css') s = s.replace(/;\s*}/g, '}');
       s = s.replace(/\s+/g, ' ').replace(/ ?([(){}[\];,.=+\-*/<>:!&|?%^~]) ?/g, '$1');
-      if (lang === 'python') s = raw.match(/^\s*/)[0].replace(/\t/g, '    ').length + '|' + s;
+      if (lang === 'python' || lang === 'yaml') s = raw.match(/^\s*/)[0].replace(/\t/g, '    ').length + '|' + s;
       out.push({ s, line: idx + 1, raw });
     });
     return out;
   }
   const same = (a, b) => a.length === b.length && a.every((x, i) => x.s === b[i].s);
 
+  // indentation is meaning in Python and YAML, so it is kept for those two
   // "console.log(stock)" -> "c______.l__(s____)": the shape of a line without giving it away
   const shape = (line) => line.trim().replace(/([A-Za-z0-9])([A-Za-z0-9]*)/g, (m, a, b) => a + '_'.repeat(b.length));
 

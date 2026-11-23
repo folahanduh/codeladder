@@ -11,13 +11,18 @@
     { id: 'setup', name: 'Foundations', blurb: 'Your computer, the terminal, Git, packages and debugging: the things every professional uses every day.' },
     { id: 'web', name: 'Web Development', blurb: 'HTML, CSS and JavaScript, then TypeScript, React, Next.js, databases, testing, security and performance.' },
     { id: 'crypto', name: 'Cryptography & Blockchain', blurb: 'Hashes, keys and signatures, then Solidity, tokens, dApps and smart-contract security.' },
+    { id: 'security', name: 'Cybersecurity', blurb: 'From the security mindset and phishing to web hacking, key management, audits, incident response, formal verification and securing a blockchain launch. Beginner to expert.' },
     { id: 'tokenomics', name: 'Tokenomics', blurb: 'Supply, allocation, vesting, liquidity and incentives, and how to model a token economy honestly.' },
   ];
   const LEVELS = [
     { id: 'beginner', name: 'Beginner' },
     { id: 'intermediate', name: 'Intermediate' },
     { id: 'advanced', name: 'Advanced' },
+    { id: 'expert', name: 'Expert' },
   ];
+  const NUM_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+  // levels that actually have lessons in a track (only Cybersecurity goes up to Expert)
+  const levelsOf = (trackId) => LEVELS.filter((lv) => LESSONS.some((l) => l.track === trackId && l.level === lv.id));
   const TOOL_PAGES = [
     { id: 'playground', name: 'Code Playground', blurb: 'Write HTML, CSS and JavaScript and see it run instantly, with a console.' },
     { id: 'hash-lab', name: 'Hash Lab', blurb: 'Watch SHA-256 scramble your text, and mine a block with proof of work.' },
@@ -39,7 +44,8 @@
     let out = String(s).replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return `\u0000${codes.length - 1}\u0000`; });
     out = esc(out)
       .replace(/\[\[([^\]]+)\]\]/g, (_, k) => k.split('+').map((x) => `<kbd>${x.trim()}</kbd>`).join('+'))
-      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\[([^\]]+)\]\(((?:https?:\/\/|#)[^)\s]+)\)/g, (_, t, href) => `<a href="${href}"${href.startsWith('#') ? '' : ' target="_blank" rel="noopener"'}>${t}</a>`);
     return out.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${esc(codes[+i])}</code>`);
   };
   const trackOf = (id) => TRACKS.find((t) => t.id === id);
@@ -53,7 +59,7 @@
 
   // ---------------------------------------------------------------- storage
   const KEY = 'code-ladder-v1';
-  const DEFAULTS = () => ({ done: {}, quiz: {}, ex: {}, tools: {}, projects: {}, habits: {}, last: null, days: [], os: null, theme: 'system', tipSeen: 0 });
+  const DEFAULTS = () => ({ done: {}, quiz: {}, ex: {}, ctf: {}, hack: {}, tools: {}, projects: {}, habits: {}, last: null, days: [], os: null, theme: 'system', tipSeen: 0 });
   const store = {
     data: (() => {
       try {
@@ -80,7 +86,18 @@
     total += Object.values(d.projects).filter((v) => v === 'done').length * 150;
     total += Object.values(d.tools).filter(Boolean).length * 5;
     total += Object.values(d.ex || {}).reduce((n, v) => n + (v === 'solved' ? 15 : v === 'assisted' ? 5 : 0), 0);
+    total += Math.round(hackPoints() / 5);
     return total;
+  }
+  // points from captured CTF flags and ticked hackathon milestones
+  function hackPoints() {
+    const d = store.data;
+    let pts = 0;
+    for (const h of D.hackathons || []) {
+      if (h.type === 'ctf') pts += h.challenges.filter((c) => (d.ctf || {})[c.id]).reduce((n, c) => n + c.points, 0);
+      else pts += h.milestones.filter((m) => ((d.hack || {})[h.id] || {}).done?.[m.id]).reduce((n, m) => n + m.points, 0);
+    }
+    return pts;
   }
   function rank(points = xp()) {
     let current = RANKS[0], next = null;
@@ -156,7 +173,7 @@
   function renderSidebar() {
     const h = (location.hash || '#home').slice(1);
     const cur = (id) => (h === id || (id.startsWith('track-') && h.startsWith('lesson-') && lessonById(h.slice(7))?.track === id.slice(6)) ? ' aria-current="page"' : '');
-    const rungs = (t) => `<span class="nav-rungs" aria-hidden="true">${LEVELS.map((lv) => `<i><b style="width:${Math.round(pct(t.id, lv.id) * 100)}%"></b></i>`).join('')}</span>`;
+    const rungs = (t) => `<span class="nav-rungs" aria-hidden="true">${levelsOf(t.id).map((lv) => `<i class="nr-${lv.id}"><b style="width:${Math.round(pct(t.id, lv.id) * 100)}%"></b></i>`).join('')}</span>`;
     $('#sidebar').innerHTML = `
       <div class="nav-group">
         <a class="nav-link" href="#home"${cur('home')}>Home</a>
@@ -172,10 +189,14 @@
         ${TOOL_PAGES.map((t) => `<a class="nav-link" href="#${t.id}"${cur(t.id)}>${t.name}</a>`).join('')}
       </div>
       <div class="nav-group">
+        <p class="nav-label">Practice</p>
+        <a class="nav-link" href="#projects"${cur('projects')}>Projects<span class="count">${D.projects.length}</span></a>
+        <a class="nav-link" href="#hackathons"${cur('hackathons')}>Hackathons &amp; CTF<span class="count">${(D.hackathons || []).length}</span></a>
+      </div>
+      <div class="nav-group">
         <p class="nav-label">Reference</p>
         <a class="nav-link" href="#toolkit"${cur('toolkit')}>Install everything<span class="count">${countTools()}</span></a>
         <a class="nav-link" href="#tips"${cur('tips')}>Tips &amp; tricks<span class="count">${D.tips.length}</span></a>
-        <a class="nav-link" href="#projects"${cur('projects')}>Projects<span class="count">${D.projects.length}</span></a>
         <a class="nav-link" href="#glossary"${cur('glossary')}>Glossary<span class="count">${D.glossary.length}</span></a>
       </div>`;
   }
@@ -200,7 +221,7 @@
       <section class="hero">
         <p class="eyebrow">Self-paced coding school</p>
         <h1>Climb from your first HTML tag to shipping smart contracts.</h1>
-        <p class="lede">${LESSONS.length} lessons in four tracks, each with a quiz. Projects for every level, an install guide for every tool a professional uses, and four hands-on labs. Your progress saves in this browser.</p>
+        <p class="lede">${LESSONS.length} lessons in ${NUM_WORDS[TRACKS.length] || TRACKS.length} tracks, with ${LESSONS.reduce((n, l) => n + l.exercises.length, 0)} coding exercises and a quiz in every lesson. Projects for every level, hackathons and a capture-the-flag, an install guide for every tool a professional uses, and four hands-on labs. Your progress saves in this browser.</p>
         <div class="row">
           <a class="btn btn-primary" href="#lesson-${next.id}">${done ? 'Continue' : 'Start'}: ${esc(next.title)}</a>
           <a class="btn" href="#roadmap">See the 12-month roadmap</a>
@@ -216,7 +237,7 @@
             return `<a class="ladder" href="#track-${t.id}">
               <span class="ladder-name">${t.name}</span>
               <span class="ladder-frame">
-                ${[...LEVELS].reverse().map((lv) => {
+                ${[...levelsOf(t.id)].reverse().map((lv) => {
                   const list = lessonsIn(t.id, lv.id);
                   const n = list.filter((l) => isDone(l.id)).length;
                   return `<span class="rung rung-${lv.id}" title="${lv.name}: ${n} of ${list.length}"><b style="width:${list.length ? Math.round((n / list.length) * 100) : 0}%"></b><span><span>${lv.name}</span><span>${n}/${list.length}</span></span></span>`;
@@ -233,7 +254,7 @@
           <p class="eyebrow">Your rank</p>
           <p class="rank-big">${r.name}</p>
           <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(progressToNext * 100)}" aria-label="Progress to next rank"><span style="width:${Math.round(progressToNext * 100)}%"></span></div>
-          <p class="muted small">${r.next ? `${(r.next[0] - xp()).toLocaleString()} XP to <strong>${r.next[1]}</strong>. Lessons give 40 XP, coding exercises 15, perfect quizzes 20, shipped projects 150.` : 'Top rank reached. Now teach someone else.'}</p>
+          <p class="muted small">${r.next ? `${(r.next[0] - xp()).toLocaleString()} XP to <strong>${r.next[1]}</strong>. Lessons give 40 XP, coding exercises 15, perfect quizzes 20, shipped projects 150, and CTF flags and hackathon milestones a fifth of their points.` : 'Top rank reached. Now teach someone else.'}</p>
           <p class="muted small">Active days in a row: <strong>${streak()}</strong></p>
         </div>
         <div class="card" style="display:grid;gap:10px;align-content:start">
@@ -249,6 +270,13 @@
         <h2 class="section-title" id="labs">Hands-on labs</h2>
         <div class="grid-2">
           ${TOOL_PAGES.map((t) => `<a class="card tool-card" href="#${t.id}"><h3>${t.name}</h3><p>${t.blurb}</p></a>`).join('')}
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="compete">
+        <h2 class="section-title" id="compete">Hackathons and capture the flag</h2>
+        <div class="grid-3">
+          ${(D.hackathons || []).map((h) => `<a class="card tool-card" href="#hackathons"><span class="tip-cat">${esc(h.level)} &middot; ${esc(h.duration.split('.')[0])}</span><h3>${esc(h.name)}</h3><p>${esc(h.tagline)}</p></a>`).join('')}
         </div>
       </section>
 
@@ -548,7 +576,7 @@
         <h1>Projects</h1>
         <p>Lessons teach you. Projects make you a developer. Build each one without a tutorial open, push it to GitHub, and write a short README explaining what you learned. Shipping a project earns 150 XP.</p>
       </header>
-      ${LEVELS.map((lv) => `
+      ${LEVELS.filter((lv) => D.projects.some((p) => p.level === lv.id)).map((lv) => `
         <section class="section">
           <div class="level-head"><h2 class="lv lv-${lv.id}">${lv.name}</h2></div>
           <div class="grid-3">
@@ -599,6 +627,7 @@
               <ul>${m.points.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
               <div class="row small">${ls.map((l) => `<a href="#lesson-${l.id}"${isDone(l.id) ? ' style="text-decoration:line-through"' : ''}>${esc(l.title)}</a>`).join('<span class="muted" aria-hidden="true">&middot;</span>')}</div>
               ${p ? `<p class="small" style="margin-top:8px"><strong>Project:</strong> <a href="#projects">${esc(p.title)}</a></p>` : ''}
+              ${m.hackathon ? `<p class="small"><strong>Hackathon:</strong> <a href="#hackathons">${esc((D.hackathons.find((x) => x.id === m.hackathon) || {}).name || '')}</a></p>` : ''}
             </div>
           </div>`;
         }).join('')}
@@ -656,6 +685,7 @@
         <div class="stat"><b>${xp().toLocaleString()}</b><span>XP</span></div>
         <div class="stat"><b>${Object.keys(d.done).length}/${LESSONS.length}</b><span>Lessons complete</span></div>
         <div class="stat"><b>${quizPassed}</b><span>Quizzes passed</span></div>
+        <div class="stat"><b>${Object.keys(d.ctf || {}).length}/${(D.hackathons || []).filter((h) => h.type === 'ctf').reduce((n, h) => n + h.challenges.length, 0)}</b><span>CTF flags captured</span></div>
         <div class="stat"><b>${Object.values(d.ex || {}).filter((v) => v === 'solved').length}/${LESSONS.reduce((n, l) => n + l.exercises.length, 0)}</b><span>Exercises solved on your own</span></div>
         <div class="stat"><b>${shipped}/${D.projects.length}</b><span>Projects shipped</span></div>
         <div class="stat"><b>${tools}/${countTools()}</b><span>Tools installed</span></div>
@@ -667,7 +697,7 @@
           <thead><tr><th>Track</th>${LEVELS.map((lv) => `<th>${lv.name}</th>`).join('')}</tr></thead>
           <tbody>${TRACKS.map((t) => `<tr><td><a href="#track-${t.id}">${t.name}</a></td>${LEVELS.map((lv) => {
             const list = lessonsIn(t.id, lv.id);
-            return `<td style="font-variant-numeric:tabular-nums">${list.filter((l) => isDone(l.id)).length} / ${list.length}</td>`;
+            return list.length ? `<td style="font-variant-numeric:tabular-nums">${list.filter((l) => isDone(l.id)).length} / ${list.length}</td>` : '<td class="muted">&ndash;</td>';
           }).join('')}</tr>`).join('')}</tbody>
         </table></div>
       </section>
@@ -708,6 +738,221 @@
     $('#resetAll').addEventListener('click', () => { $('#resetConfirm').hidden = false; $('#resetCancel').hidden = false; $('#resetAll').hidden = true; });
     $('#resetCancel').addEventListener('click', () => { $('#resetConfirm').hidden = true; $('#resetCancel').hidden = true; $('#resetAll').hidden = false; });
     $('#resetConfirm').addEventListener('click', () => { store.data = DEFAULTS(); store.save(); applyTheme(); route(true); toast('Progress reset'); });
+  }
+
+  // ---------------------------------------------------------------- hackathons & CTF
+  let hackTimer = null;
+  const hackState = (id) => {
+    store.data.hack = store.data.hack || {};
+    store.data.hack[id] = store.data.hack[id] || { start: null, done: {} };
+    return store.data.hack[id];
+  };
+  function hackScore(h) {
+    if (h.type === 'ctf') {
+      const total = h.challenges.reduce((n, c) => n + c.points, 0);
+      const got = h.challenges.filter((c) => (store.data.ctf || {})[c.id]).reduce((n, c) => n + c.points, 0);
+      return { got, total };
+    }
+    const st = (store.data.hack || {})[h.id] || { done: {} };
+    return { got: h.milestones.filter((m) => st.done[m.id]).reduce((n, m) => n + m.points, 0), total: h.milestones.reduce((n, m) => n + m.points, 0) };
+  }
+  function clockText(h) {
+    const st = (store.data.hack || {})[h.id];
+    if (!st || !st.start) return `Not started. You have ${h.hours} hours once you start the clock.`;
+    const left = st.start + h.hours * 3600000 - Date.now();
+    const fmtDur = (ms) => { const m = Math.floor(Math.abs(ms) / 60000); return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`; };
+    return left > 0 ? `${fmtDur(left)} left` : `Time is up (ended ${fmtDur(left)} ago). Finish your write-up and present.`;
+  }
+  function ctfCard(c) {
+    const solved = Boolean((store.data.ctf || {})[c.id]);
+    return `<article class="card ctf${solved ? ' solved' : ''}" data-ctf="${c.id}">
+      <div class="ctf-head">
+        <span class="lv lv-${c.level}">${c.level}</span>
+        <span class="chip">${esc(c.cat)}</span>
+        <span class="ctf-points">${c.points} pts</span>
+      </div>
+      <h4>${esc(c.title)}</h4>
+      <p class="ctf-body">${fmt(c.body)}</p>
+      ${c.html || ''}
+      ${c.code ? codeBlock(c.code, c.lang || 'text') : ''}
+      ${c.lab === 'sqli' ? `<div class="lab" aria-label="Login form lab">
+        <div class="grid-2">
+          <label class="field"><span class="field-label">Username</span><input type="text" id="sqliUser" autocomplete="off" spellcheck="false" placeholder="admin"></label>
+          <label class="field"><span class="field-label">Password</span><input type="text" id="sqliPass" autocomplete="off" spellcheck="false" placeholder="you do not know it"></label>
+        </div>
+        <span class="field-label">The query the server builds from your input</span>
+        <pre class="hash-out" id="sqliQuery"></pre>
+        <div class="row"><button type="button" class="btn" id="sqliGo">Log in</button></div>
+        <div id="sqliResult" role="status"></div>
+      </div>` : ''}
+      ${c.starter ? `<div class="row"><button type="button" class="btn btn-sm" data-starter="${c.id}">Open a starter in the Playground</button></div>` : ''}
+      <details class="ctf-hint"><summary>Show a hint</summary><p>${fmt(c.hint)}</p></details>
+      <form class="ctf-form" data-flag="${c.id}" novalidate>
+        <label class="sr-only" for="flag-${c.id}">Flag for ${esc(c.title)}</label>
+        <input type="text" id="flag-${c.id}" placeholder="${solved ? 'Captured' : 'flag{...}'}" autocomplete="off" spellcheck="false" ${solved ? 'disabled' : ''}>
+        <button type="submit" class="btn ${solved ? '' : 'btn-primary'}" ${solved ? 'disabled' : ''}>${solved ? 'Captured' : 'Submit'}</button>
+      </form>
+      <p class="ctf-msg" role="status">${solved ? '<strong>Flag captured.</strong>' : ''}</p>
+    </article>`;
+  }
+  function viewHackathons() {
+    const hs = D.hackathons || [];
+    return `
+    <div class="page-wide">
+      <header class="page-head">
+        <p class="eyebrow">Practice</p>
+        <h1>Hackathons &amp; CTF</h1>
+        <p>Security is learned by attacking and defending for real. Start with the capture-the-flag in your browser, then run the two timed hackathons against practice targets and your own projects. When you are ready, the list at the bottom shows real competitions to enter.</p>
+      </header>
+      <div class="grid-3">
+        ${hs.map((h) => { const s = hackScore(h); return `<button type="button" class="card tool-card hack-jump" data-jump="${h.id}"><span class="tip-cat">${esc(h.level)}</span><h3>${esc(h.name)}</h3><p>${esc(h.tagline)}</p><span class="small muted">${s.got} / ${s.total} points</span></button>`; }).join('')}
+      </div>
+      <aside class="callout callout-warn"><p class="callout-title">Stay legal</p><p>Only attack the challenges here, practice apps running on your own machine, and platforms or bug bounties that give you permission. Testing anything else without written permission can be a crime under the UK Computer Misuse Act and similar laws elsewhere.</p></aside>
+      ${hs.map((h) => {
+        const s = hackScore(h);
+        const head = `<div class="hack-head">
+            <div><p class="eyebrow">${h.type === 'ctf' ? 'Capture the flag' : 'Build hackathon'}</p><h2 class="section-title">${esc(h.name)}</h2><p class="muted">${esc(h.tagline)}</p></div>
+            <div class="hack-score"><b>${s.got}</b><span>of ${s.total} points</span></div>
+          </div>
+          <div class="row">${[h.level, h.duration.split('.')[0], h.team].map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>
+          <p>${fmt(h.intro)}</p>`;
+        if (h.type === 'ctf') {
+          return `<section class="section hack" id="hack-${h.id}">${head}
+            ${LEVELS.map((lv) => {
+              const list = h.challenges.filter((c) => c.level === lv.id);
+              return list.length ? `<div class="level-head"><h3 class="lv lv-${lv.id}">${lv.name}</h3></div><div class="ctf-grid">${list.map(ctfCard).join('')}</div>` : '';
+            }).join('')}
+          </section>`;
+        }
+        const st = (store.data.hack || {})[h.id] || { start: null, done: {} };
+        const phases = [...new Set(h.milestones.map((m) => m.phase))];
+        return `<section class="section hack" id="hack-${h.id}">${head}
+          <div class="card hack-clock">
+            <div><span class="field-label">Clock</span><p class="clock-text" data-clock="${h.id}">${esc(clockText(h))}</p></div>
+            <div class="row">${st.start ? `<button type="button" class="btn btn-sm" data-restart="${h.id}">Restart the clock</button>` : `<button type="button" class="btn btn-primary" data-start="${h.id}">Start the ${h.hours}-hour clock</button>`}</div>
+          </div>
+          <div class="grid-2">
+            <div class="card" style="display:grid;gap:8px;align-content:start"><h3 class="small-title">Rules</h3><ul class="plain-list">${h.rules.map((r) => `<li>${fmt(r)}</li>`).join('')}</ul></div>
+            <div class="card" style="display:grid;gap:8px;align-content:start"><h3 class="small-title">How it is judged</h3>
+              <div class="table-wrap"><table><thead><tr><th>Criterion</th><th>Weight</th></tr></thead><tbody>${h.rubric.map((r) => `<tr><td><strong>${esc(r.name)}</strong><br><span class="muted small">${esc(r.desc)}</span></td><td>${r.weight}%</td></tr>`).join('')}</tbody></table></div>
+              <p class="muted small">Judge yourself honestly, or swap scores with a friend doing the same hackathon.</p>
+            </div>
+          </div>
+          ${phases.map((ph) => `<div class="level-head"><h3 class="small-title">${esc(ph)}</h3></div>
+            <div class="milestones">${h.milestones.filter((m) => m.phase === ph).map((m) => `<label class="quiz-opt milestone"><input type="checkbox" data-ms="${h.id}:${m.id}" id="ms-${h.id}-${m.id}" ${st.done[m.id] ? 'checked' : ''}><span>${fmt(m.text)}</span><span class="ctf-points">${m.points} pts</span></label>`).join('')}</div>`).join('')}
+        </section>`;
+      }).join('')}
+      <section class="section">
+        <h2 class="section-title">Real competitions to enter</h2>
+        <p class="muted">All of these give you permission to hack within their rules. Start at the top and work down.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Event</th><th>Type</th><th>Level</th><th>What it is</th></tr></thead>
+          <tbody>${(D.competitions || []).map((c) => `<tr><td><a href="${c.url}" target="_blank" rel="noopener">${esc(c.name)}</a></td><td>${esc(c.kind)}</td><td>${esc(c.level)}</td><td>${esc(c.note)}</td></tr>`).join('')}</tbody>
+        </table></div>
+      </section>
+      <section class="section card">
+        <h2 class="section-title">How to do well at a hackathon</h2>
+        <ol class="steps">${(D.hackTips || []).map((t) => `<li><div>${fmt(t)}</div></li>`).join('')}</ol>
+      </section>
+    </div>`;
+  }
+
+  // A deliberately vulnerable "server" for the SQL injection lab. It mimics how SQL
+  // evaluates the WHERE clause: a -- comments out the rest, and AND binds before OR.
+  function sqliLogin(user, pass) {
+    const query = `SELECT * FROM users WHERE username = '${user}' AND password = '${pass}'`;
+    const cut = query.indexOf('--');
+    const core = (cut >= 0 ? query.slice(0, cut) : query).trim();
+    if (((core.match(/'/g) || []).length) % 2) return { query, ok: false, msg: 'SQL error: unbalanced quote. Your quote broke out of the string; now finish the job, or comment out the rest with --' };
+    const always = /\bOR\s+(?:'([^']*)'\s*=\s*'\1|(\d+)\s*=\s*\2\b)/i;
+    const andAt = core.search(/\bAND\s+password\s*=/i);
+    let ok;
+    if (andAt < 0) ok = /WHERE\s+username\s*=\s*'admin'\s*$/i.test(core) || always.test(core);
+    else ok = always.test(core.slice(andAt));
+    return { query, ok, msg: ok ? '' : 'Login failed: wrong username or password.' };
+  }
+
+  function mountHackathons() {
+    const main = $('#main');
+    const refreshScores = () => {
+      $$('.hack-jump', main).forEach((b) => {
+        const h = D.hackathons.find((x) => x.id === b.dataset.jump);
+        const s = hackScore(h);
+        b.querySelector('.small').textContent = `${s.got} / ${s.total} points`;
+      });
+      $$('.hack', main).forEach((sec) => {
+        const h = D.hackathons.find((x) => `hack-${x.id}` === sec.id);
+        if (h) sec.querySelector('.hack-score b').textContent = hackScore(h).got;
+      });
+    };
+    $$('.hack-jump', main).forEach((b) => b.addEventListener('click', () => $(`#hack-${b.dataset.jump}`).scrollIntoView({ behavior: 'smooth', block: 'start' })));
+    // CTF flags: compare the SHA-256 of the answer with the stored hash
+    $$('form[data-flag]', main).forEach((form) => form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const c = D.hackathons.flatMap((h) => h.challenges || []).find((x) => x.id === form.dataset.flag);
+      const input = form.querySelector('input');
+      const msg = form.parentElement.querySelector('.ctf-msg');
+      const v = input.value.trim();
+      if (!v) { msg.textContent = 'Type the flag first.'; return; }
+      const candidates = v.startsWith('flag{') ? [v] : [v, `flag{${v}}`];
+      const hit = candidates.some((x) => TOOLS.sha256 && TOOLS.sha256(x) === c.hash);
+      if (hit) {
+        store.data.ctf = store.data.ctf || {};
+        store.data.ctf[c.id] = Date.now();
+        store.markActive();
+        store.save();
+        toast(`Flag captured: +${c.points} points`);
+        form.parentElement.classList.add('solved');
+        input.disabled = true;
+        form.querySelector('button').disabled = true;
+        form.querySelector('button').textContent = 'Captured';
+        form.querySelector('button').classList.remove('btn-primary');
+        msg.innerHTML = '<strong>Flag captured.</strong>';
+        refreshScores();
+      } else {
+        msg.textContent = 'Not the flag. Check the format (flag{...}), spelling and case, or open the hint.';
+      }
+    }));
+    $$('[data-starter]', main).forEach((b) => b.addEventListener('click', () => {
+      const c = D.hackathons.flatMap((h) => h.challenges || []).find((x) => x.id === b.dataset.starter);
+      if (TOOLS.loadIntoPlayground) TOOLS.loadIntoPlayground('js', c.starter);
+      location.hash = 'playground';
+    }));
+    // SQL injection lab
+    const u = $('#sqliUser', main), p = $('#sqliPass', main);
+    if (u && p) {
+      const show = () => { $('#sqliQuery', main).textContent = sqliLogin(u.value, p.value).query; };
+      u.addEventListener('input', show);
+      p.addEventListener('input', show);
+      show();
+      $('#sqliGo', main).addEventListener('click', () => {
+        const r = sqliLogin(u.value, p.value);
+        $('#sqliResult', main).innerHTML = r.ok
+          ? '<div class="fb fb-good"><p><strong>Logged in as admin.</strong> Welcome back! Your flag: <code>flag{sql_injection_logs_you_in}</code></p><p>Why it worked: your input was pasted into the SQL text, so it changed the query\'s logic. The fix is a parameterised query (<code>WHERE username = $1 AND password = $2</code>), which always treats input as data, plus hashed passwords.</p></div>'
+          : `<div class="fb fb-bad"><p>${esc(r.msg)}</p></div>`;
+      });
+    }
+    // build hackathons: clocks and milestones
+    $$('[data-start], [data-restart]', main).forEach((b) => b.addEventListener('click', () => {
+      const id = b.dataset.start || b.dataset.restart;
+      hackState(id).start = Date.now();
+      store.markActive();
+      store.save();
+      toast('Clock started. Good luck!');
+      route(true);
+    }));
+    $$('[data-ms]', main).forEach((cb) => cb.addEventListener('change', () => {
+      const [hid, mid] = cb.dataset.ms.split(':');
+      const st = hackState(hid);
+      if (cb.checked) { st.done[mid] = Date.now(); store.markActive(); } else delete st.done[mid];
+      store.save();
+      const m = D.hackathons.find((h) => h.id === hid).milestones.find((x) => x.id === mid);
+      if (cb.checked) toast(`Milestone done: +${m.points} points`);
+      refreshScores();
+    }));
+    const tick = () => $$('[data-clock]', main).forEach((el) => { el.textContent = clockText(D.hackathons.find((h) => h.id === el.dataset.clock)); });
+    clearInterval(hackTimer);
+    hackTimer = setInterval(tick, 30000);
   }
 
   function viewTool(id) {
@@ -766,6 +1011,10 @@
     D.glossary.forEach((g) => index.push({ kind: 'Glossary', title: g.term, hay: (g.term + ' ' + g.def).toLowerCase(), body: '', href: '#glossary', gloss: g.term }));
     D.tips.forEach((t) => index.push({ kind: `Tip · ${t.cat}`, title: t.title, hay: (t.title + ' ' + t.body).toLowerCase(), body: '', href: '#tips' }));
     D.projects.forEach((p) => index.push({ kind: 'Project', title: p.title, hay: (p.title + ' ' + p.brief).toLowerCase(), body: '', href: '#projects' }));
+    (D.hackathons || []).forEach((h) => {
+      index.push({ kind: 'Hackathon', title: h.name, hay: (h.name + ' ' + h.tagline + ' hackathon ctf').toLowerCase(), body: h.intro.toLowerCase(), href: '#hackathons' });
+      (h.challenges || []).forEach((c) => index.push({ kind: `CTF challenge · ${c.cat}`, title: c.title, hay: (c.title + ' ' + c.cat + ' ctf').toLowerCase(), body: c.body.toLowerCase(), href: '#hackathons' }));
+    });
   }
   function search(q) {
     if (!index) buildIndex();
@@ -837,6 +1086,7 @@
     roadmap: [viewRoadmap, mountRoadmap],
     glossary: [viewGlossary, mountGlossary],
     progress: [viewProgress, mountProgress],
+    hackathons: [viewHackathons, mountHackathons],
   };
   const TOOL_MOUNT = { playground: 'playground', 'hash-lab': 'hashLab', 'token-sim': 'tokenSim', 'amm-lab': 'amm' };
 
@@ -848,6 +1098,7 @@
     lastHash = h;
     if (TOOLS.beforeLeave) TOOLS.beforeLeave();
     if (window.CL_EXERCISES) window.CL_EXERCISES.cleanup();
+    clearInterval(hackTimer);
     if (h.startsWith('track-')) {
       main.innerHTML = viewTrack(h.slice(6));
     } else if (h.startsWith('lesson-')) {
