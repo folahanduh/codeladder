@@ -14,10 +14,22 @@ window.CL_AI = (function () {
   let offReason = '';
   let sample = null;
 
+  // Inside claude.ai the page runs in a frame and the host adds window.claude, sometimes a moment
+  // after our scripts start, so wait briefly for it. A page opened directly never gets one.
+  async function claudeHost() {
+    for (let i = 0; i < 20; i++) {
+      if (window.claude && typeof window.claude.use === 'function') return window.claude;
+      if (window.top === window) return null;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    return null;
+  }
+
   const ready = (async () => {
-    if (window.claude && typeof window.claude.use === 'function') {
+    const host = await claudeHost();
+    if (host) {
       try {
-        sample = await window.claude.use('sample');
+        sample = await host.use('sample');
         if (sample) { mode = 'artifact'; return mode; }
       } catch (e) { /* fall through */ }
     }
@@ -57,7 +69,9 @@ window.CL_AI = (function () {
     await ready;
     if (mode === 'artifact') {
       try {
-        const { text } = await sample([{ role: 'user', content: system }, ...turns], {
+        // sample() has no separate system prompt, so the instructions lead the first user turn
+        const merged = turns.map((t, i) => (i === 0 ? { role: 'user', content: `${system || ''}\n\n---\n\nLearner: ${t.content}` } : t));
+        const { text } = await sample(merged, {
           cache: false,
           signal,
           onText: ({ text }) => onText && onText(text),
