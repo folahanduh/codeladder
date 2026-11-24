@@ -62,7 +62,7 @@
 
   // ---------------------------------------------------------------- storage
   const KEY = 'code-ladder-v1';
-  const DEFAULTS = () => ({ done: {}, quiz: {}, ex: {}, ctf: {}, hack: {}, crit: {}, tools: {}, projects: {}, habits: {}, last: null, days: [], os: null, theme: 'system', tipSeen: 0 });
+  const DEFAULTS = () => ({ done: {}, quiz: {}, ex: {}, ctf: {}, hack: {}, crit: {}, cards: {}, tools: {}, projects: {}, habits: {}, last: null, days: [], os: null, theme: 'system', tipSeen: 0 });
   const store = {
     data: (() => {
       try {
@@ -91,6 +91,7 @@
     total += Object.values(d.ex || {}).reduce((n, v) => n + (v === 'solved' ? 15 : v === 'assisted' ? 5 : 0), 0);
     total += Math.round(hackPoints() / 5);
     total += Object.values(d.crit || {}).reduce((n, v) => n + Math.round(v / 2), 0);
+    total += Object.values(d.cards || {}).filter((c) => c.box >= MASTERED_BOX).length * 5;
     return total;
   }
   // points from captured CTF flags and ticked hackathon milestones
@@ -183,6 +184,7 @@
         <a class="nav-link" href="#home"${cur('home')}>Home</a>
         <a class="nav-link" href="#roadmap"${cur('roadmap')}>12-month roadmap</a>
         <a class="nav-link" href="#progress"${cur('progress')}>My progress</a>
+        <a class="nav-link" href="#refresh"${cur('refresh')}>Mind refresh${(() => { const n = dueCards().length; return n ? `<span class="count">${n}</span>` : ''; })()}</a>
       </div>
       <div class="nav-group">
         <p class="nav-label">Tracks</p>
@@ -210,6 +212,184 @@
     const chip = $('#xpChip');
     if (chip) chip.textContent = `${xp().toLocaleString()} XP`;
     renderSidebar();
+  }
+
+  // ---------------------------------------------------------------- mind refresh
+  // Every finished lesson gets a recap: what it covered, the code you wrote, and flashcards made from
+  // its quiz. Cards then come back on a spaced-repetition schedule (the Leitner system): remember one
+  // and it waits longer before returning; forget it and it comes back tomorrow.
+  const BOX_DAYS = [0, 1, 3, 7, 16, 35]; // box number -> days until the next review
+  const MASTERED_BOX = 4; // remembered three times in a row
+  const addDays = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
+  const cardsOf = (l) => l.quiz.map((q, i) => ({ id: `${l.id}#q${i}`, l, q }));
+  const cardById = (id) => { const [lid, qi] = id.split('#q'); const l = lessonById(lid); return l && l.quiz[+qi] ? { id, l, q: l.quiz[+qi] } : null; };
+  const sectionsOf = (l) => (l.html.match(/<h2[^>]*>[\s\S]*?<\/h2>/g) || []).map((h) => h.replace(/<[^>]+>/g, '').trim()).filter(Boolean);
+  function cardState(id) { return (store.data.cards || {})[id]; }
+  // Cards join the schedule when their lesson is finished; the first review is tomorrow.
+  function enrolCards(l, dueToday) {
+    store.data.cards = store.data.cards || {};
+    cardsOf(l).forEach((c) => { if (!store.data.cards[c.id]) store.data.cards[c.id] = { box: 1, due: dueToday ? today() : addDays(1) }; });
+  }
+  function gradeCard(id, remembered) {
+    store.data.cards = store.data.cards || {};
+    const cur = store.data.cards[id] || { box: 0 };
+    const box = remembered ? Math.min(cur.box + 1, BOX_DAYS.length - 1) : 1;
+    store.data.cards[id] = { box, due: addDays(BOX_DAYS[box]), seen: (cur.seen || 0) + 1 };
+    store.markActive();
+    store.save();
+    return BOX_DAYS[box];
+  }
+  // Cards due today from finished lessons. Lessons finished before this feature existed join now.
+  function dueCards() {
+    const due = [];
+    const t = today();
+    LESSONS.filter((l) => isDone(l.id)).forEach((l) => cardsOf(l).forEach((c) => {
+      const st = cardState(c.id);
+      if (!st || st.due <= t) due.push(c);
+    }));
+    return due;
+  }
+  const masteredCount = () => Object.values(store.data.cards || {}).filter((c) => c.box >= MASTERED_BOX).length;
+  const levelName = (id) => (LEVELS.find((lv) => lv.id === id) || {}).name || id;
+  const levelDone = (track, level) => { const list = lessonsIn(track, level); return list.length > 0 && list.every((l) => isDone(l.id)); };
+
+  function flashHTML(c, big) {
+    return `<div class="flash${big ? ' flash-big' : ''}" data-card="${esc(c.id)}">
+      <p class="flash-q">${c.q.q}</p>
+      <button type="button" class="btn btn-sm flash-show">Show answer</button>
+      <div class="flash-a" hidden>
+        <p class="flash-ans">${c.q.options[c.q.answer]}</p>
+        <p class="muted">${c.q.explain}</p>
+        <div class="row flash-grade"><span class="small muted">Did you remember it?</span><button type="button" class="btn btn-sm btn-primary" data-grade="1">Yes, got it</button><button type="button" class="btn btn-sm" data-grade="0">Not yet</button></div>
+      </div>
+    </div>`;
+  }
+  // Wires every flashcard inside root. onGraded(id, remembered) runs after each answer.
+  // practiceOnly(id) = true means a second try in the same session: no change to the schedule.
+  function wireFlash(root, onGraded, practiceOnly) {
+    $$('.flash', root).forEach((card) => {
+      $('.flash-show', card).addEventListener('click', (e) => {
+        e.target.hidden = true;
+        $('.flash-a', card).hidden = false;
+        $('[data-grade="1"]', card).focus();
+      });
+      $$('[data-grade]', card).forEach((b) => b.addEventListener('click', () => {
+        const ok = b.dataset.grade === '1';
+        card.classList.add(ok ? 'flash-ok' : 'flash-again');
+        if (practiceOnly && practiceOnly(card.dataset.card)) {
+          $('.flash-grade', card).innerHTML = `<span class="small">${ok ? 'Good, it is fresher now. It still comes back tomorrow.' : 'It comes back tomorrow. Have a quick look at the lesson before then.'}</span>`;
+        } else {
+          const days = gradeCard(card.dataset.card, ok);
+          $('.flash-grade', card).innerHTML = `<span class="small">${ok ? `Nice. It comes back in ${days} day${days === 1 ? '' : 's'}.` : 'No problem: it comes back tomorrow, and the more you see it the longer it sticks.'}</span>`;
+        }
+        if (onGraded) onGraded(card.dataset.card, ok);
+      }));
+    });
+  }
+
+  function recapHTML(l) {
+    const secs = sectionsOf(l);
+    return `
+      <div class="recap-head"><p class="eyebrow">Mind refresh</p><h2 class="section-title" id="recap-title">Recap: ${esc(l.title)}</h2><p class="muted">${esc(l.summary)}</p></div>
+      <div class="recap-grid">
+        <div class="recap-box"><h3 class="small-title">What you covered</h3><ol class="recap-sections">${secs.map((x) => `<li>${esc(x)}</li>`).join('')}</ol></div>
+        ${l.exercises.length ? `<div class="recap-box"><h3 class="small-title">Code you wrote</h3>${l.exercises.map((e) => `<details class="recap-code"><summary>${e.title}</summary>${codeBlock(e.solution, e.lang)}</details>`).join('')}</div>` : ''}
+      </div>
+      ${l.quiz.length ? `<div class="recap-cards"><h3 class="small-title">Test your memory</h3><p class="muted small">Answer each one in your head before you reveal it. Recalling beats rereading. These cards come back in your daily <a href="#refresh">Mind refresh</a>.</p><div class="flash-list">${cardsOf(l).map((c) => flashHTML(c)).join('')}</div></div>` : ''}
+      <div id="levelDone"></div>`;
+  }
+  function levelBanner(l) {
+    if (!levelDone(l.track, l.level)) return '';
+    const t = trackOf(l.track);
+    const n = lessonsIn(l.track, l.level).reduce((k, x) => k + x.quiz.length, 0);
+    return `<div class="recap-level"><p class="eyebrow">Level complete</p><h3>You finished ${esc(t.name)}: ${levelName(l.level)}</h3><p class="muted">Lock it in before you move up: read the level recap and run through all ${n} of its cards.</p><div class="row"><a class="btn btn-primary btn-sm" href="#recap-${l.track}-${l.level}">Level recap</a><a class="btn btn-sm" href="#refresh-${l.track}-${l.level}">Refresh the whole level</a></div></div>`;
+  }
+
+  function viewLevelRecap(key) {
+    const [trackId, level] = key.split('-');
+    const t = trackOf(trackId);
+    const list = lessonsIn(trackId, level);
+    if (!t || !list.length) return `<div class="page"><h1>Recap not found</h1><p><a href="#home">Back home</a></p></div>`;
+    const done = list.filter((l) => isDone(l.id));
+    return `
+    <div class="page">
+      <header class="page-head">
+        <p class="eyebrow">Mind refresh &middot; Level recap</p>
+        <h1>${esc(t.name)}: ${levelName(level)}</h1>
+        <p>${done.length} of ${list.length} lessons finished. The key ideas from each finished lesson, in one place. Lessons you have not finished stay hidden so the recap does not spoil their quizzes.</p>
+        <div class="row">${done.length ? `<a class="btn btn-primary" href="#refresh-${trackId}-${level}">Refresh this level (${done.reduce((k, l) => k + l.quiz.length, 0)} cards)</a>` : ''}<a class="btn" href="#track-${trackId}">Back to ${esc(t.name)}</a></div>
+      </header>
+      ${list.map((l) => isDone(l.id) ? `
+        <section class="card recap-lesson">
+          <h2 class="recap-lesson-title"><a href="#lesson-${l.id}">${esc(l.title)}</a></h2>
+          <p class="muted">${esc(l.summary)}</p>
+          <ul class="recap-ideas">${l.quiz.map((q) => `<li><span class="recap-q">${q.q}</span><span class="recap-a">${q.options[q.answer]}</span></li>`).join('')}</ul>
+        </section>` : `
+        <section class="card recap-lesson recap-locked">
+          <h2 class="recap-lesson-title"><a href="#lesson-${l.id}">${esc(l.title)}</a></h2>
+          <p class="muted small">Not finished yet. Its key ideas appear here when you finish it.</p>
+        </section>`).join('')}
+    </div>`;
+  }
+
+  // A review session: today's due cards, or every card from one level.
+  let session = null;
+  function viewRefresh(scope) {
+    let cards;
+    let title = 'Mind refresh';
+    let note = 'A few minutes of recall from lessons you have finished. Answer in your head, reveal, then be honest: cards you remember wait longer before coming back; cards you forget return tomorrow.';
+    if (scope) {
+      const [trackId, level] = scope.split('-');
+      const t = trackOf(trackId);
+      cards = lessonsIn(trackId, level).filter((l) => isDone(l.id)).flatMap(cardsOf);
+      title = t ? `Refresh: ${t.name}, ${levelName(level)}` : title;
+      note = 'Every card from the lessons you have finished at this level, in a shuffled order.';
+      for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
+    } else {
+      cards = dueCards().slice(0, 12);
+    }
+    session = { cards, firstCount: cards.length, i: 0, remembered: 0, again: [], requeued: new Set() };
+    const levels = [];
+    TRACKS.forEach((t) => LEVELS.forEach((lv) => { if (lessonsIn(t.id, lv.id).some((l) => isDone(l.id))) levels.push({ t, lv }); }));
+    return `
+    <div class="page">
+      <header class="page-head"><p class="eyebrow">Practice</p><h1>${esc(title)}</h1><p>${note}</p></header>
+      <div id="refreshBody"></div>
+      ${levels.length ? `<section class="section"><h2 class="section-title">Level recaps</h2><div class="recap-links">${levels.map(({ t, lv }) => `<a class="chip" href="#recap-${t.id}-${lv.id}">${esc(t.name)}: ${lv.name}${levelDone(t.id, lv.id) ? ' &#10003;' : ''}</a>`).join('')}</div></section>` : ''}
+      <p class="muted small">Mastered cards: <strong>${masteredCount()}</strong> (5 XP each). A card is mastered once you have remembered it three reviews in a row.</p>
+    </div>`;
+  }
+  function mountRefresh() {
+    const body = $('#refreshBody');
+    if (!body || !session) return;
+    const s = session;
+    if (!s.cards.length) {
+      const any = LESSONS.some((l) => isDone(l.id));
+      body.innerHTML = `<div class="card refresh-empty"><h2 class="section-title">${any ? 'All caught up' : 'Nothing to refresh yet'}</h2><p class="muted">${any ? 'No cards are due today. Come back tomorrow, or refresh a whole level below.' : 'Finish a lesson (pass its quiz or mark it complete) and its key ideas become cards here.'}</p></div>`;
+      return;
+    }
+    const show = () => {
+      if (s.i >= s.cards.length) {
+        body.innerHTML = `<div class="card refresh-done"><p class="eyebrow">Session complete</p><h2 class="section-title">You remembered ${s.remembered} of ${s.firstCount}</h2><p class="muted">${s.again.length ? `Cards you missed come back tomorrow. Worth a quick reread: ${[...new Set(s.again.map((id) => cardById(id).l))].map((l) => `<a href="#lesson-${l.id}">${esc(l.title)}</a>`).join(', ')}.` : 'A clean sweep. Those cards now wait longer before coming back.'}</p><div class="row"><a class="btn btn-primary" href="#home">Back home</a><a class="btn" href="#progress">My progress</a></div></div>`;
+        return;
+      }
+      const c = s.cards[s.i];
+      body.innerHTML = `<div class="refresh-top"><span class="small muted">Card ${s.i + 1} of ${s.cards.length} &middot; from <a href="#lesson-${c.l.id}">${esc(c.l.title)}</a></span><div class="bar"><span style="width:${(s.i / s.cards.length) * 100}%"></span></div></div>${flashHTML(c, true)}`;
+      enhanceCode(body);
+      const secondTry = s.i >= s.firstCount;
+      wireFlash(body, (id, ok) => {
+        if (ok && !secondTry) s.remembered++;
+        if (!ok && !secondTry) { s.again.push(id); s.requeued.add(id); s.cards.push(c); }
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'btn btn-primary btn-sm refresh-next';
+        next.textContent = s.i + 1 < s.cards.length ? 'Next card' : 'Finish';
+        next.addEventListener('click', () => { s.i++; show(); });
+        $('.flash-grade', body).append(next);
+        next.focus();
+      }, () => secondTry);
+    };
+    show();
   }
 
   // ---------------------------------------------------------------- views
@@ -258,7 +438,7 @@
           <p class="eyebrow">Your rank</p>
           <p class="rank-big">${r.name}</p>
           <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(progressToNext * 100)}" aria-label="Progress to next rank"><span style="width:${Math.round(progressToNext * 100)}%"></span></div>
-          <p class="muted small">${r.next ? `${(r.next[0] - xp()).toLocaleString()} XP to <strong>${r.next[1]}</strong>. Lessons give 40 XP, coding exercises 15, perfect quizzes 20, shipped projects 150, and CTF flags and hackathon milestones a fifth of their points, and Critical Moment runs half your best score.` : 'Top rank reached. Now teach someone else.'}</p>
+          <p class="muted small">${r.next ? `${(r.next[0] - xp()).toLocaleString()} XP to <strong>${r.next[1]}</strong>. Lessons give 40 XP, coding exercises 15, perfect quizzes 20, shipped projects 150, and CTF flags and hackathon milestones a fifth of their points, Critical Moment runs half your best score, and every Mind refresh card you master 5.` : 'Top rank reached. Now teach someone else.'}</p>
           <p class="muted small">Active days in a row: <strong>${streak()}</strong></p>
         </div>
         <div class="card" style="display:grid;gap:10px;align-content:start">
@@ -269,6 +449,16 @@
           <a href="#tips" class="small">All ${D.tips.length} tips</a>
         </div>
       </section>
+
+      ${(() => {
+        const anyDone = LESSONS.some((l) => isDone(l.id));
+        const due = dueCards().length;
+        return `<section class="card refresh-home" aria-labelledby="refresh-h">
+          <div><p class="eyebrow">Mind refresh</p><h2 class="section-title" id="refresh-h">${!anyDone ? 'Remember what you learn' : due ? `${due} card${due === 1 ? '' : 's'} to refresh today` : 'All caught up for today'}</h2>
+          <p class="muted small">${!anyDone ? 'Every lesson you finish ends with a recap and memory cards. They come back here on a schedule, just before you would forget them.' : due ? 'A few minutes of recall now saves relearning later.' : `You have mastered ${masteredCount()} card${masteredCount() === 1 ? '' : 's'}. New cards arrive as you finish lessons.`}</p></div>
+          ${anyDone ? `<a class="btn${due ? ' btn-primary' : ''}" href="#refresh">${due ? 'Start refresh' : 'Open Mind refresh'}</a>` : ''}
+        </section>`;
+      })()}
 
       <section class="section" aria-labelledby="labs">
         <h2 class="section-title" id="labs">Hands-on labs</h2>
@@ -318,7 +508,7 @@
         if (!list.length) return '';
         const projects = D.projects.filter((p) => p.track === t.id && p.level === lv.id);
         return `<section class="level-block">
-          <div class="level-head"><h2 class="lv lv-${lv.id}">${lv.name}</h2><span class="muted small">${list.filter((l) => isDone(l.id)).length}/${list.length} done</span></div>
+          <div class="level-head"><h2 class="lv lv-${lv.id}">${lv.name}</h2><span class="muted small">${list.filter((l) => isDone(l.id)).length}/${list.length} done${list.some((l) => isDone(l.id)) ? ` &middot; <a href="#recap-${t.id}-${lv.id}">${levelDone(t.id, lv.id) ? 'Level recap &#10003;' : 'Recap so far'}</a>` : ''}</span></div>
           <ol class="lesson-list">
             ${list.map((l) => {
               num++;
@@ -377,6 +567,8 @@
           </div>
         </form>
       </section>` : ''}
+      <section class="section recap" id="recap" aria-labelledby="recap-title"${isDone(l.id) ? '' : ' hidden'}>${isDone(l.id) ? recapHTML(l) : ''}</section>
+      ${isDone(l.id) ? '' : '<p class="recap-teaser" id="recapTeaser"><strong>Mind refresh:</strong> finish this lesson (pass the quiz or mark it complete) to unlock a recap of what you covered, the code you wrote and memory cards.</p>'}
       <div class="lesson-actions">
         <button class="btn${isDone(l.id) ? '' : ' btn-primary'}" type="button" id="toggleDone">${isDone(l.id) ? 'Mark as not done' : 'Mark lesson complete'}</button>
         <a class="btn" href="#track-${t.id}">All ${t.name} lessons</a>
@@ -401,13 +593,29 @@
         getContext: () => `Lesson: ${l.title} (${trackOf(l.track).name}, ${l.level}). Summary: ${l.summary}\n\nLesson text:\n${l.text.slice(0, 18000)}`,
       });
     });
+    // Shows the Mind refresh recap once the lesson is finished.
+    const showRecap = (scroll) => {
+      const box = $('#recap');
+      if (!box) return;
+      enrolCards(l);
+      store.save();
+      box.innerHTML = recapHTML(l);
+      box.hidden = false;
+      $('#recapTeaser')?.remove();
+      enhanceCode(box);
+      wireFlash(box);
+      $('#levelDone', box).innerHTML = levelBanner(l);
+      if (scroll) setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+    };
+    if (isDone(l.id)) { wireFlash($('#recap')); $('#levelDone').innerHTML = levelBanner(l); }
     $('#toggleDone')?.addEventListener('click', () => {
       const btn = $('#toggleDone');
       if (isDone(l.id)) delete store.data.done[l.id];
-      else { store.data.done[l.id] = Date.now(); store.markActive(); toast('Lesson complete: +40 XP'); }
+      else { store.data.done[l.id] = Date.now(); store.markActive(); toast('Lesson complete: +40 XP. Here is your mind refresh.'); }
       store.save();
       btn.textContent = isDone(l.id) ? 'Mark as not done' : 'Mark lesson complete';
       btn.classList.toggle('btn-primary', !isDone(l.id));
+      if (isDone(l.id)) showRecap(true);
     });
     $('.ex-jump')?.addEventListener('click', (e) => {
       e.preventDefault();
@@ -463,9 +671,10 @@
         store.markActive();
         store.save();
         const gained = (firstPass ? 20 : 0) + (newlyDone ? 40 : 0);
-        if (gained) toast(`Quiz passed: +${gained} XP`);
+        if (gained) toast(`Quiz passed: +${gained} XP${newlyDone ? '. Here is your mind refresh.' : ''}`);
         const btn = $('#toggleDone');
         if (btn) { btn.textContent = 'Mark as not done'; btn.classList.remove('btn-primary'); }
+        if (newlyDone) showRecap(true);
       } else if (store.data.quiz[l.id] !== 1) {
         store.data.quiz[l.id] = correct / l.quiz.length;
         store.save();
@@ -702,6 +911,7 @@
         <div class="stat"><b>${Object.keys(d.ctf || {}).length}/${(D.hackathons || []).filter((h) => h.type === 'ctf').reduce((n, h) => n + h.challenges.length, 0)}</b><span>CTF flags captured</span></div>
         <div class="stat"><b>${Object.values(d.ex || {}).filter((v) => v === 'solved').length}/${LESSONS.reduce((n, l) => n + l.exercises.length, 0)}</b><span>Exercises solved on your own</span></div>
         <div class="stat"><b>${Object.keys(d.crit || {}).length}/${(window.CL_SCENARIOS || []).length}</b><span>Critical Moment scenarios scored</span></div>
+        <div class="stat"><b>${masteredCount()}/${LESSONS.reduce((n, l) => n + l.quiz.length, 0)}</b><span>Mind refresh cards mastered</span></div>
         <div class="stat"><b>${shipped}/${D.projects.length}</b><span>Projects shipped</span></div>
         <div class="stat"><b>${tools}/${countTools()}</b><span>Tools installed</span></div>
         <div class="stat"><b>${d.days.length}</b><span>Active days</span></div>
@@ -1130,6 +1340,11 @@
     clearInterval(hackTimer);
     if (h.startsWith('track-')) {
       main.innerHTML = viewTrack(h.slice(6));
+    } else if (h.startsWith('recap-')) {
+      main.innerHTML = viewLevelRecap(h.slice(6));
+    } else if (h === 'refresh' || h.startsWith('refresh-')) {
+      main.innerHTML = viewRefresh(h === 'refresh' ? '' : h.slice(8));
+      mountRefresh();
     } else if (h.startsWith('lesson-')) {
       main.innerHTML = viewLesson(h.slice(7));
       mountLesson(h.slice(7));

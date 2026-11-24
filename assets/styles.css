@@ -780,3 +780,53 @@ button.tool-card { text-align: left; font: inherit; color: var(--ink); cursor: p
 .coach-drawer .coach-log { max-height: none; }
 .coach-close { position: absolute; top: 10px; right: 10px; font-size: 22px; line-height: 1; }
 @keyframes coach-in { from { transform: translateX(24px); opacity: 0; } }
+
+/* ---------------------------------------------------------------- Mind refresh */
+.recap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; padding: 20px; border: 1px solid var(--line); border-top: 4px solid var(--accent); border-radius: var(--radius); background: var(--surface); }
+.recap[hidden] { display: none; }
+.recap-head { display: grid; gap: 4px; min-width: 0; }
+.recap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
+.recap-box { display: grid; gap: 8px; align-content: start; padding: 14px; border-radius: 8px; background: var(--surface-2); min-width: 0; }
+.recap-sections { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; font-size: 15px; }
+.recap-code { min-width: 0; }
+.recap-code summary { cursor: pointer; font-size: 14.5px; font-weight: 600; padding: 4px 0; }
+.recap-code summary code { font-size: 0.88em; }
+.recap-code .code { margin-top: 6px; }
+.recap-code .code pre { font-size: 12.5px; max-height: 320px; }
+.recap-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.recap-teaser { font-size: 14.5px; color: var(--muted); padding: 12px 14px; border: 1px dashed var(--line); border-radius: 8px; }
+.recap-teaser strong { color: var(--ink); }
+.recap-level { display: grid; gap: 6px; padding: 16px; border-radius: 8px; border: 1px solid var(--good); background: color-mix(in srgb, var(--good) 10%, transparent); }
+.recap-level:empty { display: none; }
+.recap-level h3 { font-size: 18px; }
+#levelDone:empty { display: none; }
+.flash-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+.flash { display: grid; gap: 10px; align-content: start; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); min-width: 0; }
+.flash-q { font-weight: 650; font-size: 15.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.flash-show { justify-self: start; }
+.flash-a { display: grid; gap: 8px; }
+.flash-a[hidden] { display: none; }
+.flash-ans { font-weight: 650; color: var(--good); }
+.flash-a .muted { font-size: 14.5px; }
+.flash-grade { gap: 8px; }
+.flash-ok { border-color: var(--good); }
+.flash-again { border-color: var(--int); }
+.flash code, .recap-ideas code { font-size: 0.86em; padding: 0.1em 0.35em; border-radius: 5px; background: var(--surface-2); overflow-wrap: anywhere; }
+.flash-big { padding: 22px; gap: 14px; }
+.flash-big .flash-q { font-size: 19px; }
+.refresh-top { display: grid; gap: 6px; margin-bottom: 12px; }
+.refresh-empty, .refresh-done { display: grid; gap: 10px; }
+.refresh-home { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; border-left: 4px solid var(--accent); }
+.refresh-home > div { display: grid; gap: 4px; flex: 1 1 300px; min-width: 0; }
+.recap-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.recap-links .chip { text-decoration: none; padding: 5px 11px; font-size: 13.5px; color: var(--ink); }
+.recap-links .chip:hover { background: var(--accent-soft); }
+.recap-lesson { display: grid; gap: 8px; margin-bottom: 14px; }
+.recap-lesson-title { font-size: 18px; }
+.recap-lesson-title a { color: var(--ink); text-decoration: none; }
+.recap-lesson-title a:hover { color: var(--accent); }
+.recap-locked { opacity: 0.7; border-style: dashed; }
+.recap-ideas { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.recap-ideas li { display: grid; gap: 3px; padding-left: 12px; border-left: 3px solid var(--accent-soft); }
+.recap-q { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.recap-a { font-size: 15.5px; font-weight: 600; overflow-wrap: anywhere; }
