@@ -10,7 +10,7 @@ A self-paced coding school that runs on your own computer. It takes you from you
 - **Encryption track (10 lessons)**: make every hack worth less. Encrypt your devices, backups and messages; encrypt files with age; HTTPS, HSTS and secure cookies; AES-256-GCM field encryption in your app; encrypted secrets with SOPS, secret managers and CI; envelope encryption with a KMS and backups that survive a public bucket; end-to-end and client-side encryption; how real encryption gets broken (you carry out a nonce-reuse attack yourself); and post-quantum cryptography with crypto agility.
 - **US law throughout**: the legal sections follow United States law, since most blockchain companies operate in or serve the US. Hacking and testing (the CFAA, the Wiretap Act, state laws), token launches (the SEC and the Howey test, CFTC, FinCEN, OFAC, FTC disclosure rules, IRS, state licences), data breaches (state breach-notification laws and their encryption safe harbor, the CCPA) and reporting crime (the FBI's IC3). General awareness, not legal advice.
 - **Critical Moment**: an attack simulator. A live attack unfolds on a virtual machine with a clock (3, 5 or 10 minutes): watch the attacker's activity feed, **identify the attack type**, **decode the evidence** (Base64, hex, URL, JWT and transaction calldata decoders built in) and **respond in the right order** before their next move lands. Then a full debrief: what happened, the attacker's methods, the professional response, prevention steps and a defensive script. Seven built-in scenarios (café Wi-Fi interception, phishing proxy, wallet drainer, malicious OAuth app, leaked deployer key, blind-signing a multisig, a public bucket of unencrypted backups), or **describe any scenario and the AI builds it**.
-- **AI coach**: ask questions while you learn. It sits beside every Critical Moment run (hints only while the clock runs, full explanations afterwards) and opens from every lesson with **Ask the AI coach**. See [Turn on the AI coach](#turn-on-the-ai-coach).
+- **AI coach**: ask questions while you learn. It sits beside every Critical Moment run (hints only while the clock runs, full explanations afterwards) and opens from every lesson with **Ask the AI coach**. No API key needed: see [Turn on the AI coach](#turn-on-the-ai-coach-no-api-key).
 - **Hackathons & CTF**: the **Ladder CTF** (17 capture-the-flag challenges you play in the browser, beginner to expert, with answers checked by SHA-256 hash and a live SQL-injection lab), plus three timed build hackathons with milestones, rules and judging rubrics: **Secure the Shop** (48 hours, web security), **Lock the Keys: Accounts & Signing** (48 hours, logins, OAuth, signing keys and detection) and **Build & Break: DeFi Security** (72 hours, smart contracts). Also a list of real CTFs, hackathons, audit contests and bug bounties to enter.
 - **165 hands-on coding exercises** in a built-in editor that looks and behaves like VS Code (line numbers, syntax colours, auto-indent). Type the code, press **Check**, get a tip on every wrong try, and after **5 wrong tries in a row** the answer appears as faded **ghost text** that you type over, character by character. JavaScript, HTML and CSS exercises also **run** so you see the result.
 - **311 quiz questions**, with progress, XP and ranks saved in your browser
@@ -18,7 +18,7 @@ A self-paced coding school that runs on your own computer. It takes you from you
 - **5 interactive labs**: a code Playground, a SHA-256 Hash Lab with a proof-of-work miner, a Tokenomics Simulator, an AMM Lab and Critical Moment
 - **31 projects**, a **12-month roadmap**, **70 tips and tricks** and a **147-term glossary**
 
-No frameworks. The whole site is plain HTML, CSS and JavaScript, so once you have done a few lessons you can read and change every line of it. The only dependency is the optional Anthropic SDK, used by the local server for the AI coach.
+No frameworks and no `npm install`. The whole site is plain HTML, CSS and JavaScript, so once you have done a few lessons you can read and change every line of it.
 
 ## Run it
 
@@ -37,35 +37,42 @@ npm start
 
 Then open <http://localhost:3000>. Press `Ctrl+C` in the terminal to stop it.
 
-### Turn on the AI coach
+### Turn on the AI coach (no API key)
 
-The AI coach and custom Critical Moment scenarios call Claude. On your own computer they run through the local server, using **your** Anthropic API key (get one at <https://console.anthropic.com>; usage is billed to your account).
+The AI coach and custom Critical Moment scenarios need **no API key**. When you run `npm start`, the local server looks for one of these on your computer and uses the first it finds:
 
-```bash
-cd code-ladder
-npm install
-```
-
-Then start it with your key in the environment. macOS or Linux:
+1. **Claude Code, signed in with your Claude account.** Install Claude Code (see <https://code.claude.com>), run `claude` once in a terminal and type `/login`. The coach then runs on your Claude plan, so its usage counts towards your plan's normal limits.
+2. **Ollama**, a free app that runs open models entirely on your computer, offline. Install it from <https://ollama.com>, then download a model:
 
 ```bash
-ANTHROPIC_API_KEY=your-key npm start
+ollama pull llama3.1
 ```
 
-Windows PowerShell:
+Then start Code Ladder as usual:
 
-```powershell
-$env:ANTHROPIC_API_KEY="your-key"; npm start
+```bash
+npm start
 ```
 
-The terminal says `AI coach: ON` when it worked. How it stays safe:
+The terminal says `AI coach: ON, using ...` with the one it picked. Local models are smaller than Claude, so their answers and generated scenarios are simpler, but they cost nothing and nothing leaves your computer.
 
-- **Your key never reaches the browser.** The page asks the local server, and the server calls Claude. Never put a key in front-end code.
-- The server listens on `127.0.0.1` only, so nobody else on your network can spend your key. It also checks the `Host` and `Origin` headers (so other websites cannot call it), only accepts JSON, limits request sizes and rate-limits questions.
-- Requests use the `claude-opus-5-5` model with **server-side fallback** turned on (`fallbacks: "default"`): if the model declines a request for policy reasons, which security topics occasionally trigger, the API retries it on a fallback model instead of failing. Set `CODE_LADDER_MODEL` to use a different model.
+Options, set as environment variables when you start (for example `CODE_LADDER_AI=ollama npm start`):
+
+| Variable | What it does |
+|---|---|
+| `CODE_LADDER_AI` | `claude-code`, `ollama` or `off`. Unset means try Claude Code first, then Ollama |
+| `CODE_LADDER_MODEL` | A Claude model for Claude Code to use (default: Claude Code's own default) |
+| `CODE_LADDER_OLLAMA_MODEL` | Which Ollama model to use (default: the first chat model you have installed) |
+
+How it stays safe:
+
+- **No API key is used, even if you have one.** The server removes `ANTHROPIC_API_KEY` from what it passes to Claude Code, so the coach always runs on your Claude login.
+- **Claude Code runs with every tool switched off**: no shell, no file access, no MCP servers, and none of your Claude Code settings or hooks. It runs in an empty temporary folder, and your questions go in through standard input, never on the command line. It can only write text back.
+- The server listens on `127.0.0.1` only, so nobody else on your network can use your coach. It also checks the `Host` and `Origin` headers (so other websites cannot call it), only accepts JSON, limits request sizes and rate-limits questions.
+- Coach chats are not saved to your Claude Code history.
 - Never paste real private keys, seed phrases or passwords into the coach. The coach is told to treat any that appear as compromised.
 
-Without a key (or on GitHub Pages, which only serves static files) everything else works and the coach explains how to turn it on.
+Without either option (or on GitHub Pages, which only serves static files) everything else works and the coach explains how to turn it on. The [claude.ai version](https://claude.ai/artifact/RTPZojurfsM5KL6rzzaQyd) has the coach built in, using your Claude account.
 
 ### Option 3: put it on the internet with GitHub Pages
 
@@ -173,7 +180,7 @@ Optional Markdown shown once the exercise is solved.
 
 ## Licence
 
-MIT. Third-party: [highlight.js](https://highlightjs.org) 11.9.0, BSD-3-Clause (see `assets/vendor/highlight.LICENSE.txt`); the optional [Anthropic TypeScript SDK](https://github.com/anthropics/anthropic-sdk-typescript), MIT, installed by `npm install`.
+MIT. Third-party: [highlight.js](https://highlightjs.org) 11.9.0, BSD-3-Clause (see `assets/vendor/highlight.LICENSE.txt`).
 
 All Critical Moment scenarios, names, domains and addresses are fictional. Practise attacks only on systems you own or legal training labs.
 

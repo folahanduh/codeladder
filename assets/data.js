@@ -290,7 +290,7 @@ window.CL_DATA = (function () {
       name: 'AI and productivity',
       blurb: 'Use AI as a tutor and pair-programmer, not a crutch. Always understand code before you keep it.',
       items: [
-        { id: 'claude-code', name: 'Claude Code', when: 'Month 2', what: 'An AI coding assistant in your terminal and editor that can read your project, explain it and make changes you review.', cmd: { all: '# See the current install steps:\n# https://code.claude.com' }, link: 'https://code.claude.com' },
+        { id: 'claude-code', name: 'Claude Code', when: 'Month 2', what: 'An AI coding assistant in your terminal and editor that can read your project, explain it and make changes you review. Sign in with your Claude account (run claude, then /login) and it also powers Code Ladder\'s AI coach, with no API key.', cmd: { all: '# See the current install steps:\n# https://code.claude.com' }, link: 'https://code.claude.com' },
         { id: 'notes', name: 'A notes app for a "TIL" journal', when: 'Day 1', what: 'Write down one thing you learned every day (Obsidian, Notion or a Markdown folder in Git). Seniors keep notes.', cmd: { mac: 'brew install --cask obsidian', win: 'winget install -e --id Obsidian.Obsidian', linux: 'sudo snap install obsidian --classic' } },
       ],
     },

@@ -234,7 +234,7 @@ window.CL_CRITICAL = (function () {
         start(root, s.id);
       } catch (e) {
         const near = closestScenario(desc);
-        out.innerHTML = `<div class="fb ${e.code === 'off' ? 'fb-ghost' : 'fb-bad'}"><p>${esc(e.message || 'The scenario could not be generated.')}</p>${e.code === 'off' ? '<p>Custom scenarios need the AI coach: run Code Ladder on your computer with <code>npm install</code> and <code>ANTHROPIC_API_KEY=your-key npm start</code>, or use the claude.ai version.</p>' : ''}${near ? `<p>The closest built-in scenario is <strong>${esc(near.title)}</strong>.</p><div class="row"><button type="button" class="btn btn-sm btn-primary" data-near="${esc(near.id)}">Play it now</button></div>` : ''}</div>`;
+        out.innerHTML = `<div class="fb ${e.code === 'off' ? 'fb-ghost' : 'fb-bad'}"><p>${esc(e.message || 'The scenario could not be generated.')}</p>${e.code === 'off' ? '<p>Custom scenarios need the AI coach, and no API key: sign in to Claude Code on your computer (run <code>claude</code>, then <code>/login</code>) or install Ollama, then run <code>npm start</code>. It also works in the claude.ai version.</p>' : ''}${near ? `<p>The closest built-in scenario is <strong>${esc(near.title)}</strong>.</p><div class="row"><button type="button" class="btn btn-sm btn-primary" data-near="${esc(near.id)}">Play it now</button></div>` : ''}</div>`;
         const nb = $('[data-near]', out);
         if (nb) nb.addEventListener('click', () => start(root, nb.dataset.near));
       } finally {
@@ -557,7 +557,7 @@ window.CL_CRITICAL = (function () {
     const lines = [
       `Critical Moment simulator. Scenario: "${sc.title}" (${sc.level}). Learner's role: ${sc.role}. Brief: ${sc.brief}`,
       `What the learner's virtual machine shows: ${sc.screen.title} ${sc.screen.url} | ${sc.screen.lines.join(' | ')}`,
-      `Time used: ${mmss(run.elapsed)} of ${mmss(run.duration)}.`,
+      run.ended ? `The run took ${mmss(run.elapsed)} of a ${mmss(run.duration)} time limit.` : `Time remaining on the clock: ${mmss(run.duration - run.elapsed)} (minutes:seconds) out of ${mmss(run.duration)}. Only mention time if it matters.`,
       'Events the learner has seen so far:',
       ...run.log.map((l) => `[${mmss(l.t)}] ${l.src}: ${l.text}`),
       `Attack-type options: ${sc.attackTypes.map((a) => a.label).join('; ')}`,

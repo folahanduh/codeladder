@@ -1,9 +1,9 @@
 /* Code Ladder AI coach.
-   Two ways to reach Claude, tried in order:
+   No API key anywhere. Two ways in, tried in order:
    1. Inside claude.ai (the published artifact): the page's built-in `sample` capability,
       which runs on the viewer's own Claude account.
-   2. On your computer: the local server's /api/ai endpoints (scripts/serve.mjs), which call
-      the Claude API with YOUR key from an environment variable. The key never reaches the browser.
+   2. On your computer: the local server's /api/ai endpoints (scripts/serve.mjs), which use
+      Claude Code signed in with your Claude account, or a free local model through Ollama.
    On a static host such as GitHub Pages neither exists, so the coach explains how to turn it on. */
 window.CL_AI = (function () {
   'use strict';
@@ -12,6 +12,7 @@ window.CL_AI = (function () {
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   let mode = 'checking';
   let offReason = '';
+  let localLabel = '';
   let sample = null;
 
   // Inside claude.ai the page runs in a frame and the host adds window.claude, sometimes a moment
@@ -37,7 +38,7 @@ window.CL_AI = (function () {
       const r = await fetch('api/ai/status', { headers: { Accept: 'application/json' } });
       if (r.ok) {
         const j = await r.json();
-        if (j.enabled) { mode = 'local'; return mode; }
+        if (j.enabled) { mode = 'local'; localLabel = j.label || ''; return mode; }
         offReason = j.reason || '';
       }
     } catch (e) { /* not running on the local server */ }
@@ -47,12 +48,12 @@ window.CL_AI = (function () {
 
   function statusText() {
     if (mode === 'artifact') return 'Connected through claude.ai';
-    if (mode === 'local') return 'Connected through your local server';
+    if (mode === 'local') return localLabel ? `Connected: ${localLabel}` : 'Connected through your local server';
     if (mode === 'checking') return 'Connecting...';
     return 'Not connected';
   }
   function offHelp() {
-    return `<p><strong>The AI coach is not connected here.</strong> ${offReason ? esc(offReason) + ' ' : ''}To use it on your computer, run <code>npm install</code> once in the code-ladder folder, then start Code Ladder with your Anthropic API key in the environment, for example <code>ANTHROPIC_API_KEY=your-key npm start</code> (on Windows PowerShell: <code>$env:ANTHROPIC_API_KEY="your-key"; npm start</code>). The key stays on your computer and is never sent to the browser. The coach also works in the claude.ai version of Code Ladder.</p>`;
+    return `<p><strong>The AI coach is not connected here.</strong> ${offReason ? esc(offReason) + ' ' : ''}It needs no API key. On your computer, either sign in to <strong>Claude Code</strong> with your Claude account (run <code>claude</code> in a terminal and type <code>/login</code>), or install <strong>Ollama</strong> for a free model that runs offline (<code>ollama pull llama3.1</code>). Then start Code Ladder with <code>npm start</code> and open <code>http://localhost:3000</code>. The coach also works in the claude.ai version of Code Ladder, using your Claude account.</p>`;
   }
   const friendly = (code, message) => ({
     not_granted: 'You chose not to let this page use Claude. Reload the page to be asked again.',
