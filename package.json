@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "A self-paced coding school: web development, cybersecurity, key and account security, smart contracts and tokenomics from beginner to expert, with an attack simulator and an AI coach.",
+  "homepage": "https://folahanduh.github.io/codeladder/",
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",

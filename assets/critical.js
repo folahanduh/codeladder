@@ -212,9 +212,16 @@ window.CL_CRITICAL = (function () {
       <section class="section"><h2 class="section-title">Built-in scenarios</h2><div class="grid-3">${(window.CL_SCENARIOS || []).map(card).join('')}</div></section>`;
 
     const status = $('#cmAiStatus', root);
-    window.CL_AI.ready.then((m) => {
-      status.textContent = m === 'off' ? 'AI not connected' : 'AI connected';
-      status.classList.toggle('chip-good', m !== 'off');
+    const showStatus = (m) => {
+      status.textContent = m === 'off' ? 'AI not connected' : m === 'checking' ? 'Checking AI...' : (window.CL_AI.connectedToComputer ? 'AI connected to your computer' : 'AI connected');
+      status.classList.toggle('chip-good', m !== 'off' && m !== 'checking');
+    };
+    window.CL_AI.ready.then(showStatus);
+    const stopStatus = window.CL_AI.onChange((m) => {
+      if (!status.isConnected) { stopStatus(); return; }
+      showStatus(m);
+      const out = $('#cmGenOut', root);
+      if (m === 'local' && out && out.querySelector('.coach-connect')) out.innerHTML = '<p class="muted">Connected. Press Generate scenario.</p>';
     });
     $$('[data-play]', root).forEach((b) => b.addEventListener('click', () => start(root, b.dataset.play)));
     $$('[data-forget]', root).forEach((b) => b.addEventListener('click', () => { saveCustom(loadCustom().filter((s) => s.id !== b.dataset.forget)); renderPicker(root); }));
@@ -234,7 +241,9 @@ window.CL_CRITICAL = (function () {
         start(root, s.id);
       } catch (e) {
         const near = closestScenario(desc);
-        out.innerHTML = `<div class="fb ${e.code === 'off' ? 'fb-ghost' : 'fb-bad'}"><p>${esc(e.message || 'The scenario could not be generated.')}</p>${e.code === 'off' ? '<p>Custom scenarios need the AI coach, and no API key: sign in to Claude Code on your computer (run <code>claude</code>, then <code>/login</code>) or install Ollama, then run <code>npm start</code>. It also works in the claude.ai version.</p>' : ''}${near ? `<p>The closest built-in scenario is <strong>${esc(near.title)}</strong>.</p><div class="row"><button type="button" class="btn btn-sm btn-primary" data-near="${esc(near.id)}">Play it now</button></div>` : ''}</div>`;
+        const help = e.code === 'off' ? window.CL_AI.offHelp() : `<p>${esc(e.message || 'The scenario could not be generated.')}</p>`;
+        out.innerHTML = `<div class="fb ${e.code === 'off' ? 'fb-ghost' : 'fb-bad'}">${e.code === 'off' ? '<p><strong>Custom scenarios need the AI coach.</strong></p>' : ''}${help}${near ? `<p>Meanwhile, the closest built-in scenario is <strong>${esc(near.title)}</strong>.</p><div class="row"><button type="button" class="btn btn-sm" data-near="${esc(near.id)}">Play it now</button></div>` : ''}</div>`;
+        window.CL_AI.wireConnect(out);
         const nb = $('[data-near]', out);
         if (nb) nb.addEventListener('click', () => start(root, nb.dataset.near));
       } finally {

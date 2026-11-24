@@ -764,6 +764,10 @@ button.tool-card { text-align: left; font: inherit; color: var(--ink); cursor: p
 .coach-thinking { color: var(--muted); animation: cm-pulse 1.4s ease-in-out infinite; }
 .coach-off { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--int); background: color-mix(in srgb, var(--int) 10%, transparent); font-size: 14px; }
 .coach-off code { font-size: 0.88em; overflow-wrap: anywhere; }
+.coach-off:not([hidden]), .coach-msg .coach-steps { display: grid; gap: 8px; }
+.coach-steps { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.coach-connect-msg { flex: 1 1 200px; min-width: 0; }
+#cmGenOut .fb .coach-steps code, .coach-off .coach-steps code { overflow-wrap: anywhere; }
 .coach-suggest { display: flex; flex-wrap: wrap; gap: 6px; }
 .coach-suggest:empty { display: none; }
 .coach-suggest .pill-btn { font-size: 13px; font-weight: 600; text-align: left; }

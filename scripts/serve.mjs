@@ -10,8 +10,10 @@
 //
 // Security notes worth reading (they are real techniques you will use in your own servers):
 // - It listens on 127.0.0.1 only, so nobody else on your Wi-Fi can use your AI coach.
-// - API calls must come from this page: the Host and Origin headers are checked (stops
-//   "DNS rebinding" and other websites calling your local server), and POSTs must be JSON.
+// - API calls must come from this page or from YOUR Code Ladder website (your GitHub Pages address,
+//   worked out from this folder's git remote and package.json "homepage"). The Host and Origin headers
+//   are checked (stops "DNS rebinding" and other websites calling your local server), CORS only names
+//   your site, and POSTs must be JSON.
 // - Request bodies are size-limited and there is a simple per-minute rate limit.
 // - Claude Code runs with every tool switched off (no shell, no file access, no MCP servers), and
 //   your text goes in through stdin, never on the command line, so a question cannot make it run anything.
@@ -302,12 +304,36 @@ const aiReady = (async () => {
 
 // ------------------------------------------------------------------ request guards
 const allowedHosts = new Set([`localhost:${PORT}`, `127.0.0.1:${PORT}`, `[::1]:${PORT}`]);
-const allowedOrigins = new Set([...allowedHosts].map((h) => `http://${h}`));
+const localOrigins = new Set([...allowedHosts].map((h) => `http://${h}`));
+
+// Websites allowed to use this computer's AI coach (your own Code Ladder site on GitHub Pages).
+// Sources: CODE_LADDER_ALLOW_ORIGIN (comma-separated), package.json "homepage", and the GitHub
+// remote of this folder (github.com/OWNER/REPO means https://owner.github.io). Nothing else.
+async function findWebOrigins() {
+  const found = new Set();
+  const add = (url) => { try { const u = new URL(url); if (u.protocol === 'https:') found.add(u.origin.toLowerCase()); } catch { /* ignore */ } };
+  (process.env.CODE_LADDER_ALLOW_ORIGIN || '').split(',').map((x) => x.trim()).filter(Boolean).forEach(add);
+  try { const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8')); if (pkg.homepage) add(pkg.homepage); } catch { /* ignore */ }
+  try {
+    const git = await readFile(path.join(root, '.git', 'config'), 'utf8');
+    for (const m of git.matchAll(/url\s*=\s*\S*github\.com[:/]([A-Za-z0-9-]+)\/[^\s]+/g)) add(`https://${m[1].toLowerCase()}.github.io`);
+  } catch { /* not a git clone */ }
+  return found;
+}
+const webOrigins = await findWebOrigins();
 
 function sameSite(req) {
   if (!allowedHosts.has(String(req.headers.host || '').toLowerCase())) return false;
-  const origin = req.headers.origin;
-  return !origin || allowedOrigins.has(origin.toLowerCase());
+  const origin = String(req.headers.origin || '').toLowerCase();
+  return !origin || localOrigins.has(origin) || webOrigins.has(origin);
+}
+
+// CORS: tell the browser that your Code Ladder website (and only it) may read the responses.
+function allowCors(req, res) {
+  const origin = String(req.headers.origin || '').toLowerCase();
+  if (!webOrigins.has(origin)) return;
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
 }
 
 const hits = new Map();
@@ -405,7 +431,20 @@ async function handleScenario(req, res) {
 }
 
 async function handleApi(req, res, urlPath) {
-  if (!sameSite(req)) return sendJson(res, 403, { code: 'forbidden', error: 'Requests must come from Code Ladder on this computer.' });
+  if (!sameSite(req)) return sendJson(res, 403, { code: 'forbidden', error: 'Requests must come from Code Ladder on this computer or your Code Ladder website.' });
+  allowCors(req, res);
+  if (req.method === 'OPTIONS') {
+    // The browser's preflight check before a cross-site POST. Private-Network is for Chrome's
+    // older "Private Network Access" check; newer Chrome versions ask the user instead.
+    res.writeHead(204, {
+      'Access-Control-Allow-Methods': 'GET, POST',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Private-Network': 'true',
+      'Access-Control-Max-Age': '600',
+    });
+    res.end();
+    return undefined;
+  }
   await aiReady;
   if (urlPath === '/api/ai/status' && req.method === 'GET') {
     return sendJson(res, 200, { enabled: ai.enabled, label: ai.enabled ? ai.label : '', reason: ai.enabled ? '' : ai.reason });
@@ -468,5 +507,9 @@ server.listen(PORT, HOST, async () => {
   console.log(ai.enabled
     ? `  AI coach: ON, using ${ai.label}. No API key needed.`
     : `  AI coach: off. ${ai.reason}\n  To turn it on, sign in to Claude Code ("claude", then /login) or install Ollama, then restart.`);
+  if (webOrigins.size) {
+    console.log(`  Your website can use this coach too: ${[...webOrigins].join(', ')}${PORT === 3000 ? '' : ` (websites connect to port 3000; you are on ${PORT})`}`);
+    console.log('  Keep this window open while you use it.');
+  }
   console.log('  Press Ctrl+C to stop.\n');
 });
