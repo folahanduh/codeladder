@@ -1,5 +1,9 @@
 # Publishes Code Ladder to GitHub Pages on every push to main.
 # One-time setup on GitHub: Settings > Pages > Build and deployment > Source: "GitHub Actions".
+#
+# Two jobs, as in GitHub's own Pages template: "build" uploads the site, then "deploy" publishes it.
+# Deploying in the same job straight after the upload races GitHub's artifact listing and can fail
+# with "No artifacts named github-pages were found".
 name: Deploy to GitHub Pages
 
 on:
@@ -14,14 +18,11 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,5 +38,13 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
