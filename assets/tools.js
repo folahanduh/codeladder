@@ -99,7 +99,8 @@ window.CL_TOOLS = (function () {
     const script = s.js ? `<script type="module">\n${s.js.replace(/<\/script/gi, '<\\/script')}\n<\/script>` : '';
     if (/<head[^>]*>/i.test(html)) html = html.replace(/<head[^>]*>/i, (m) => m + BRIDGE + style);
     else html = BRIDGE + style + html;
-    if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, script + '</body>');
+    // replacer functions: "$'" or "$$" in your code would otherwise be treated as special patterns
+    if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, () => script + '</body>');
     else html += script;
     if (!/^\s*<!doctype/i.test(html)) html = '<!doctype html><meta charset="utf-8">' + html;
     return html;

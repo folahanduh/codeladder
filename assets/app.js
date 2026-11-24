@@ -62,7 +62,7 @@
 
   // ---------------------------------------------------------------- storage
   const KEY = 'code-ladder-v1';
-  const DEFAULTS = () => ({ done: {}, quiz: {}, ex: {}, ctf: {}, hack: {}, crit: {}, cards: {}, tools: {}, projects: {}, habits: {}, last: null, days: [], os: null, theme: 'system', tipSeen: 0 });
+  const DEFAULTS = () => ({ done: {}, quiz: {}, ex: {}, ctf: {}, hack: {}, crit: {}, cards: {}, mini: {}, tools: {}, projects: {}, habits: {}, last: null, days: [], os: null, theme: 'system', tipSeen: 0 });
   const store = {
     data: (() => {
       try {
@@ -92,6 +92,7 @@
     total += Math.round(hackPoints() / 5);
     total += Object.values(d.crit || {}).reduce((n, v) => n + Math.round(v / 2), 0);
     total += Object.values(d.cards || {}).filter((c) => c.box >= MASTERED_BOX).length * 5;
+    total += Object.values(d.mini || {}).filter((m) => m.status === 'passed').length * 100;
     return total;
   }
   // points from captured CTF flags and ticked hackathon milestones
@@ -196,6 +197,7 @@
       </div>
       <div class="nav-group">
         <p class="nav-label">Practice</p>
+        <a class="nav-link" href="#mini"${cur('mini')}>Mini projects<span class="count">${MINI() ? `${Object.values(store.data.mini || {}).filter((m) => m.status === 'passed').length}/${MINI().list.length}` : 0}</span></a>
         <a class="nav-link" href="#projects"${cur('projects')}>Projects<span class="count">${D.projects.length}</span></a>
         <a class="nav-link" href="#hackathons"${cur('hackathons')}>Hackathons &amp; CTF<span class="count">${(D.hackathons || []).length}</span></a>
       </div>
@@ -400,6 +402,36 @@
     show();
   }
 
+  // ---------------------------------------------------------------- mini projects
+  const MINI = () => window.CL_MINI_APP;
+  const miniStatus = (id) => ((store.data.mini || {})[id] || {}).status || '';
+  const miniApi = {
+    trackName: (id) => (trackOf(id) || { name: id }).name,
+    status: miniStatus,
+    started(id) {
+      store.data.mini = store.data.mini || {};
+      if (!store.data.mini[id]) { store.data.mini[id] = { status: 'started' }; store.save(); }
+    },
+    passed(id) {
+      store.data.mini = store.data.mini || {};
+      if (miniStatus(id) === 'passed') return;
+      store.data.mini[id] = { status: 'passed', at: Date.now() };
+      store.markActive();
+      store.save();
+      toast('Mini project passed: +100 XP');
+    },
+  };
+  function miniSection(trackId) {
+    if (!MINI() || !MINI().forTrack(trackId).length) return '';
+    const list = MINI().forTrack(trackId);
+    const done = list.filter((p) => miniStatus(p.id) === 'passed').length;
+    return `<section class="section mini-section" aria-labelledby="mini-${trackId}">
+        <div class="mini-section-head"><div><p class="eyebrow">Your mini project</p><h2 class="section-title" id="mini-${trackId}">Build something and get it examined</h2></div>${done ? `<span class="chip chip-good">${done} passed</span>` : ''}</div>
+        <p class="muted">Choose one of these three. Build it right here in the browser, then press <strong>Examine my project</strong>: the examiner checks every requirement and tells you what to fix. Passing earns 100 XP.</p>
+        <div class="grid-3">${MINI().cardsHTML(trackId, miniStatus)}</div>
+      </section>`;
+  }
+
   // ---------------------------------------------------------------- views
   function viewHome() {
     const next = nextLesson();
@@ -446,7 +478,7 @@
           <p class="eyebrow">Your rank</p>
           <p class="rank-big">${r.name}</p>
           <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(progressToNext * 100)}" aria-label="Progress to next rank"><span style="width:${Math.round(progressToNext * 100)}%"></span></div>
-          <p class="muted small">${r.next ? `${(r.next[0] - xp()).toLocaleString()} XP to <strong>${r.next[1]}</strong>. Lessons give 40 XP, coding exercises 15, perfect quizzes 20, shipped projects 150, and CTF flags and hackathon milestones a fifth of their points, Critical Moment runs half your best score, and every Mind refresh card you master 5.` : 'Top rank reached. Now teach someone else.'}</p>
+          <p class="muted small">${r.next ? `${(r.next[0] - xp()).toLocaleString()} XP to <strong>${r.next[1]}</strong>. Lessons give 40 XP, coding exercises 15, perfect quizzes 20, shipped projects 150, and CTF flags and hackathon milestones a fifth of their points, Critical Moment runs half your best score, every Mind refresh card you master 5, and every mini project you pass 100.` : 'Top rank reached. Now teach someone else.'}</p>
           <p class="muted small">Active days in a row: <strong>${streak()}</strong></p>
         </div>
         <div class="card" style="display:grid;gap:10px;align-content:start">
@@ -474,6 +506,12 @@
           ${TOOL_PAGES.map((t) => `<a class="card tool-card${t.id === 'critical-moment' ? ' tool-card-feature' : ''}" href="#${t.id}">${t.id === 'critical-moment' ? '<span class="tip-cat">New &middot; attack simulator + AI coach</span>' : ''}<h3>${t.name}</h3><p>${t.blurb}</p></a>`).join('')}
         </div>
       </section>
+
+      ${MINI() ? `<section class="section card refresh-home" aria-labelledby="mini-h">
+        <div><p class="eyebrow">Mini projects</p><h2 class="section-title" id="mini-h">Build it, then get it examined</h2>
+        <p class="muted small">Every track has three mini projects to choose from, from an "about me" web page to a tip jar smart contract. Build one in the browser and an examiner checks every requirement.</p></div>
+        <a class="btn btn-primary" href="#mini">Choose a project</a>
+      </section>` : ''}
 
       <section class="section" aria-labelledby="compete">
         <h2 class="section-title" id="compete">Hackathons and capture the flag</h2>
@@ -510,6 +548,7 @@
           <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${all.length}" aria-valuenow="${n}" aria-label="Track progress"><span style="width:${all.length ? (n / all.length) * 100 : 0}%"></span></div>
           <span class="muted small">${n} of ${all.length} lessons complete</span>
         </div>
+        ${MINI() && MINI().forTrack(t.id).length ? '<p class="small muted">At the end: a mini project to build and get examined (choose one of three).</p>' : ''}
       </header>
       ${LEVELS.map((lv) => {
         const list = lessonsIn(t.id, lv.id);
@@ -530,6 +569,7 @@
           ${projects.length ? `<p class="small muted">Build at this level: ${projects.map((p) => `<a href="#projects">${esc(p.title)}</a>`).join(', ')}</p>` : ''}
         </section>`;
       }).join('')}
+      ${miniSection(t.id)}
       <section class="section card">
         <h2 class="section-title">Best free resources for this track</h2>
         <ul class="resource-list">
@@ -921,6 +961,7 @@
         <div class="stat"><b>${Object.values(d.ex || {}).filter((v) => v === 'solved').length}/${LESSONS.reduce((n, l) => n + l.exercises.length, 0)}</b><span>Exercises solved on your own</span></div>
         <div class="stat"><b>${Object.keys(d.crit || {}).length}/${(window.CL_SCENARIOS || []).length}</b><span>Critical Moment scenarios scored</span></div>
         <div class="stat"><b>${masteredCount()}/${LESSONS.reduce((n, l) => n + l.quiz.length, 0)}</b><span>Mind refresh cards mastered</span></div>
+        <div class="stat"><b>${Object.values(d.mini || {}).filter((m) => m.status === 'passed').length}/${MINI() ? MINI().list.length : 0}</b><span>Mini projects passed</span></div>
         <div class="stat"><b>${shipped}/${D.projects.length}</b><span>Projects shipped</span></div>
         <div class="stat"><b>${tools}/${countTools()}</b><span>Tools installed</span></div>
         <div class="stat"><b>${d.days.length}</b><span>Active days</span></div>
@@ -1245,6 +1286,7 @@
     D.glossary.forEach((g) => index.push({ kind: 'Glossary', title: g.term, hay: (g.term + ' ' + g.def).toLowerCase(), body: '', href: '#glossary', gloss: g.term }));
     D.tips.forEach((t) => index.push({ kind: `Tip · ${t.cat}`, title: t.title, hay: (t.title + ' ' + t.body).toLowerCase(), body: '', href: '#tips' }));
     D.projects.forEach((p) => index.push({ kind: 'Project', title: p.title, hay: (p.title + ' ' + p.brief).toLowerCase(), body: '', href: '#projects' }));
+    (window.CL_MINI || []).forEach((p) => index.push({ kind: 'Mini project', title: p.title, hay: (p.title + ' ' + p.pitch + ' mini project').toLowerCase(), body: p.brief.toLowerCase(), href: `#build-${p.id}` }));
     (window.CL_SCENARIOS || []).forEach((s) => index.push({ kind: 'Critical Moment', title: s.title, hay: (s.title + ' ' + s.tags.join(' ') + ' scenario attack simulator').toLowerCase(), body: s.brief.toLowerCase(), href: '#critical-moment' }));
     (D.hackathons || []).forEach((h) => {
       index.push({ kind: 'Hackathon', title: h.name, hay: (h.name + ' ' + h.tagline + ' hackathon ctf').toLowerCase(), body: h.intro.toLowerCase(), href: '#hackathons' });
@@ -1345,10 +1387,17 @@
     if (TOOLS.beforeLeave) TOOLS.beforeLeave();
     if (window.CL_EXERCISES) window.CL_EXERCISES.cleanup();
     if (window.CL_CRITICAL) window.CL_CRITICAL.cleanup();
+    if (MINI()) MINI().cleanup();
     if (window.CL_AI) window.CL_AI.closeDrawer();
     clearInterval(hackTimer);
     if (h.startsWith('track-')) {
       main.innerHTML = viewTrack(h.slice(6));
+    } else if (h.startsWith('build-') && MINI()) {
+      main.innerHTML = '<div id="miniRoot"></div>';
+      MINI().mount($('#miniRoot'), h.slice(6), miniApi);
+    } else if (h === 'mini' && MINI()) {
+      main.innerHTML = '<div id="miniRoot"></div>';
+      MINI().renderAll($('#miniRoot'), miniApi);
     } else if (h.startsWith('recap-')) {
       main.innerHTML = viewLevelRecap(h.slice(6));
     } else if (h === 'refresh' || h.startsWith('refresh-')) {
