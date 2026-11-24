@@ -227,6 +227,7 @@ window.CL_EXERCISES = (function () {
       <h3 class="ex-title">${ex.title}</h3>
       <div class="ex-prompt">${ex.prompt}</div>
       <div class="ex-editor"></div>
+      <div class="ex-explore" hidden></div>
       <div class="ex-actions">
         <button type="button" class="btn btn-primary ex-check">Check my code</button>
         ${ex.run ? '<button type="button" class="btn ex-run">Run it</button>' : ''}
@@ -321,20 +322,45 @@ window.CL_EXERCISES = (function () {
       if (p) p.textContent = wrong ? `${ok} of ${ex.solution.length} characters correct. Fix the red character${typed.length - ok > 1 ? 's' : ''} (Backspace), then carry on.` : `${ok} of ${ex.solution.length} characters typed correctly.`;
     }
 
+    // Explore mode: after an exercise is done, the code becomes hoverable (see assets/explain.js).
+    function explore(code) {
+      if (!window.CL_EXPLAIN) return;
+      const box = $('.ex-explore');
+      box.innerHTML = '';
+      box.append(window.CL_EXPLAIN.render(code, ex.lang, {
+        file: ex.file,
+        hints: ex.hints,
+        title: ex.title.replace(/<[^>]+>/g, ''),
+        onEdit: () => editMode(true),
+      }));
+      box.hidden = false;
+      $('.ex-editor').hidden = true;
+    }
+    function editMode(focus) {
+      if (window.CL_EXPLAIN) window.CL_EXPLAIN.hide();
+      $('.ex-explore').hidden = true;
+      $('.ex-explore').innerHTML = '';
+      $('.ex-editor').hidden = false;
+      if (editor.refresh) editor.refresh();
+      if (focus) editor.focus();
+    }
+
     function success(kind) {
       const before = solved();
       ghostOn = false;
       editor.setGhost(null);
+      const exploreTip = '<p class="ex-explore-tip">Now explore it: hover over (or tap) any word in your code to see what it is, how it works and why it is there.</p>';
       if (kind === 'solved') {
-        feedback('good', `<p><strong>Correct!</strong> ${before === 'solved' ? 'Solved again.' : before === 'assisted' ? 'From memory this time. Full marks: +10 more XP.' : 'Well done: +15 XP.'}</p>`);
+        feedback('good', `<p><strong>Correct!</strong> ${before === 'solved' ? 'Solved again.' : before === 'assisted' ? 'From memory this time. Full marks: +10 more XP.' : 'Well done: +15 XP.'}</p>${exploreTip}`);
       } else {
-        feedback('good', `<p><strong>You typed it perfectly.</strong> ${before ? '' : '+5 XP. '}Now close your eyes for a second, then <button type="button" class="linkish ex-memory">try it again from memory</button> to earn the full 15 XP.</p>`);
+        feedback('good', `<p><strong>You typed it perfectly.</strong> ${before ? '' : '+5 XP. '}Now close your eyes for a second, then <button type="button" class="linkish ex-memory">try it again from memory</button> to earn the full 15 XP.</p>${exploreTip}`);
         const m = $('.ex-memory');
         if (m) m.addEventListener('click', reset);
       }
       ctx.onSolved(kind);
       drawState();
       if (ex.explain) $('.ex-explain').hidden = false;
+      explore(editor.getValue());
       if (ex.run) run();
     }
 
@@ -384,6 +410,7 @@ window.CL_EXERCISES = (function () {
     }
 
     function reset() {
+      editMode(false);
       attempts = 0;
       ghostOn = false;
       editor.setGhost(null);
@@ -399,6 +426,7 @@ window.CL_EXERCISES = (function () {
     $('.ex-close').addEventListener('click', () => { $('.ex-output').hidden = true; });
     if (ex.run) $('.ex-run').addEventListener('click', run);
     if (solved() && ex.explain) $('.ex-explain').hidden = false;
+    if (solved()) explore(ex.solution);
     drawState();
     drawPips();
   }

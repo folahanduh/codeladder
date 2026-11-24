@@ -294,6 +294,11 @@ window.CL_AI = (function () {
       }
     };
     ready.then(refresh);
+    // A question handed over from elsewhere (for example "explain this word" in explored code)
+    if (opts.autoAsk) {
+      input.value = opts.autoAsk;
+      ready.then(() => { if (mode !== 'off' && input.value === opts.autoAsk) form.requestSubmit(); });
+    }
     const stopListening = onChange(() => { if (!host.isConnected) { stopListening(); return; } refresh(); });
     const add = (cls, html) => {
       const d = document.createElement('div');

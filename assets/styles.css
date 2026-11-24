@@ -830,3 +830,37 @@ button.tool-card { text-align: left; font: inherit; color: var(--ink); cursor: p
 .recap-ideas li { display: grid; gap: 3px; padding-left: 12px; border-left: 3px solid var(--accent-soft); }
 .recap-q { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
 .recap-a { font-size: 15.5px; font-weight: 600; overflow-wrap: anywhere; }
+
+/* ---------------------------------------------------------------- Explore your code (hover explanations) */
+.ex-explore[hidden], .ex-editor[hidden] { display: none; }
+.ex-explore-tip { font-size: 14.5px; }
+.xp { border-radius: var(--radius); overflow: hidden; background: var(--code-bg); border: 1px solid var(--code-line); color: var(--code-ink); min-width: 0; }
+.xp-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding: 7px 10px 7px 14px; background: #0b0f17; border-bottom: 1px solid var(--code-line); font-size: 13px; }
+.xp-file { font-family: var(--font-mono); font-weight: 600; color: #e6e9ef; }
+.xp-mode { font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #0d1015; background: #4ade80; border-radius: 999px; padding: 1px 8px; }
+.xp-tip { flex: 1 1 260px; min-width: 0; color: #9aa3b5; font-size: 12.5px; }
+.xp-bar .btn { background: transparent; color: #e6e9ef; border-color: #39414f; }
+.xp-bar .btn:hover { background: #1c222c; }
+.xp-body { display: grid; grid-template-columns: auto minmax(0, 1fr); }
+.xp-gutter { padding: 12px 10px 12px 14px; text-align: right; color: #5b6475; font-family: var(--font-mono); font-size: 13.5px; line-height: 24px; white-space: pre; user-select: none; border-right: 1px solid var(--code-line); }
+.xp-pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 13.5px; line-height: 24px; font-variant-ligatures: none; outline: none; }
+.xp-pre:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.xp-code { background: none !important; padding: 0 !important; color: inherit; white-space: pre; }
+.xt { cursor: help; border-radius: 3px; transition: background-color 0.12s; }
+.xt:hover, .xt:focus { background: rgb(143 163 255 / 18%); outline: none; }
+.xt-on { background: rgb(143 163 255 / 30%) !important; box-shadow: 0 0 0 1px rgb(143 163 255 / 60%); }
+.xt-same { background: rgb(240 180 60 / 16%); box-shadow: inset 0 -2px 0 rgb(240 180 60 / 70%); }
+.xp-pre ::selection { background: rgb(143 163 255 / 40%); }
+.xp-pop { position: absolute; z-index: 90; width: max-content; max-width: min(400px, calc(100vw - 16px)); padding: 12px 14px; display: grid; gap: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 32px rgb(0 0 0 / 22%); font-size: 14.5px; line-height: 1.45; }
+.xp-pop[hidden] { display: none; }
+.xp-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.xp-word { font-family: var(--font-mono); font-size: 14px; font-weight: 700; padding: 1px 7px; border-radius: 5px; background: var(--surface-2); overflow-wrap: anywhere; }
+.xp-sel { font-weight: 600; }
+.xp-kind { font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); }
+.xp-sec { margin: 0; overflow-wrap: anywhere; }
+.xp-label { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-bottom: 1px; }
+.xp-pop code { font-family: var(--font-mono); font-size: 0.88em; padding: 0.05em 0.3em; border-radius: 4px; background: var(--surface-2); overflow-wrap: anywhere; }
+.xp-list { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.xp-list .xp-kind { margin-right: 2px; }
+.xp-actions { margin-top: 2px; }
+.recap-xp { margin-top: 6px; }

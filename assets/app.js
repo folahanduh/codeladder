@@ -293,10 +293,18 @@
       <div class="recap-head"><p class="eyebrow">Mind refresh</p><h2 class="section-title" id="recap-title">Recap: ${esc(l.title)}</h2><p class="muted">${esc(l.summary)}</p></div>
       <div class="recap-grid">
         <div class="recap-box"><h3 class="small-title">What you covered</h3><ol class="recap-sections">${secs.map((x) => `<li>${esc(x)}</li>`).join('')}</ol></div>
-        ${l.exercises.length ? `<div class="recap-box"><h3 class="small-title">Code you wrote</h3>${l.exercises.map((e) => `<details class="recap-code"><summary>${e.title}</summary>${codeBlock(e.solution, e.lang)}</details>`).join('')}</div>` : ''}
+        ${l.exercises.length ? `<div class="recap-box"><h3 class="small-title">Code you wrote</h3>${l.exercises.map((e, i) => `<details class="recap-code"><summary>${e.title}</summary><div class="recap-xp" data-ex="${i}"></div></details>`).join('')}<p class="small muted">Open one, then hover over any word to see what it does.</p></div>` : ''}
       </div>
       ${l.quiz.length ? `<div class="recap-cards"><h3 class="small-title">Test your memory</h3><p class="muted small">Answer each one in your head before you reveal it. Recalling beats rereading. These cards come back in your daily <a href="#refresh">Mind refresh</a>.</p><div class="flash-list">${cardsOf(l).map((c) => flashHTML(c)).join('')}</div></div>` : ''}
       <div id="levelDone"></div>`;
+  }
+  // Fills the recap's "Code you wrote" boxes with explorable code.
+  function mountRecapCode(root, l) {
+    if (!window.CL_EXPLAIN || !root) return;
+    $$('.recap-xp', root).forEach((el) => {
+      const e = l.exercises[+el.dataset.ex];
+      if (e) el.append(window.CL_EXPLAIN.render(e.solution, e.lang, { file: e.file, hints: e.hints, title: e.title.replace(/<[^>]+>/g, '') }));
+    });
   }
   function levelBanner(l) {
     if (!levelDone(l.track, l.level)) return '';
@@ -603,11 +611,12 @@
       box.hidden = false;
       $('#recapTeaser')?.remove();
       enhanceCode(box);
+      mountRecapCode(box, l);
       wireFlash(box);
       $('#levelDone', box).innerHTML = levelBanner(l);
       if (scroll) setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
     };
-    if (isDone(l.id)) { wireFlash($('#recap')); $('#levelDone').innerHTML = levelBanner(l); }
+    if (isDone(l.id)) { mountRecapCode($('#recap'), l); wireFlash($('#recap')); $('#levelDone').innerHTML = levelBanner(l); }
     $('#toggleDone')?.addEventListener('click', () => {
       const btn = $('#toggleDone');
       if (isDone(l.id)) delete store.data.done[l.id];
